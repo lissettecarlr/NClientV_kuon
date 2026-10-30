@@ -257,9 +257,9 @@ public class GalleryActivity extends BaseActivity {
         menu.findItem(R.id.favorite_manager).setVisible(isValidOnline);
         menu.findItem(R.id.download_gallery).setVisible(isValidOnline);
         menu.findItem(R.id.related).setVisible(isValidOnline);
-        menu.findItem(R.id.comments).setVisible(isValidOnline);
+        menu.findItem(R.id.comments).setVisible(false);// [FORK] removed: comments
 
-        menu.findItem(R.id.share).setVisible(gallery.isValid());
+        menu.findItem(R.id.share).setVisible(false);// [FORK] removed: share
         menu.findItem(R.id.load_internet).setVisible(isLocal && gallery.isValid());
     }
 
