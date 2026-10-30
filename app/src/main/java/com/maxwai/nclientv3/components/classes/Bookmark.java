@@ -6,6 +6,7 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.maxwai.nclientv3.api.BookmarkSeeker;
 import com.maxwai.nclientv3.api.InspectorV3;
 import com.maxwai.nclientv3.api.components.Tag;
 import com.maxwai.nclientv3.api.enums.ApiRequestType;
@@ -20,12 +21,17 @@ import java.util.Collections;
 public class Bookmark {
     public final String url;
     public final int page, tag;
+    /**
+     * [FORK] id of the first gallery of the bookmarked page, 0 if unknown
+     */
+    public final int anchor;
     private final ApiRequestType requestType;
     private final Tag tagVal;
     private final Uri uri;
 
-    public Bookmark(String url, int page, ApiRequestType requestType, int tag) {
+    public Bookmark(String url, int page, ApiRequestType requestType, int tag, int anchor) {
         Tag tagVal1;
+        this.anchor = anchor;
         this.url = url;
         this.page = page;
         this.requestType = requestType;
@@ -55,6 +61,13 @@ public class Bookmark {
         if (requestType == ApiRequestType.BYTAG) return InspectorV3.searchInspector(context, "",
             Collections.singleton(tagVal), page, SortType.findFromAddition(this.url), null, response);
         return null;
+    }
+
+    /**
+     * [FORK] true if the page of this bookmark can be found again with the anchor gallery
+     */
+    public boolean canSeek() {
+        return anchor > 0 && BookmarkSeeker.isSeekable(requestType, url);
     }
 
     public void deleteBookmark() {

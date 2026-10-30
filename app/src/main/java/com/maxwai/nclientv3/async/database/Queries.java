@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.maxwai.nclientv3.api.BookmarkSeeker;
 import com.maxwai.nclientv3.api.InspectorV3;
 import com.maxwai.nclientv3.api.SimpleGallery;
 import com.maxwai.nclientv3.api.components.Gallery;
@@ -695,11 +696,13 @@ public class Queries {
         static final String PAGE = "page";
         static final String TYPE = "type";
         static final String TAG_ID = "tagId";
+        static final String ANCHOR = "anchor";// [FORK] id of the first gallery of the bookmarked page
         static final String CREATE_TABLE = "CREATE TABLE IF NOT EXISTS `Bookmark`(" +
             "`url` TEXT NOT NULL UNIQUE," +
             "`page` INT NOT NULL," +
             "`type` INT NOT NULL," +
-            "`tagId` INT NOT NULL" +
+            "`tagId` INT NOT NULL," +
+            "`anchor` INT NOT NULL DEFAULT 0" +// [FORK]
             ");";
 
         public static void deleteBookmark(String url) {
@@ -713,8 +716,10 @@ public class Queries {
             values.put(PAGE, inspector.getPage());
             values.put(TYPE, inspector.getRequestType().ordinal());
             values.put(TAG_ID, tag == null ? 0 : tag.getId());
+            values.put(ANCHOR, BookmarkSeeker.firstGalleryId(inspector));// [FORK]
             LogUtility.d("ADDED: " + inspector.getUrl());
-            db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+            // [FORK] REPLACE instead of IGNORE: bookmarking the same page again moves the anchor
+            db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         }
 
         public static List<Bookmark> getBookmarks() {
@@ -729,7 +734,8 @@ public class Queries {
                             cursor.getString(cursor.getColumnIndex(URL)),
                             cursor.getInt(cursor.getColumnIndex(PAGE)),
                             ApiRequestType.values[cursor.getInt(cursor.getColumnIndex(TYPE))],
-                            cursor.getInt(cursor.getColumnIndex(TAG_ID))
+                            cursor.getInt(cursor.getColumnIndex(TAG_ID)),
+                            cursor.getInt(cursor.getColumnIndex(ANCHOR))// [FORK]
                         );
                         bookmarks.add(b);
                     } while (cursor.moveToNext());

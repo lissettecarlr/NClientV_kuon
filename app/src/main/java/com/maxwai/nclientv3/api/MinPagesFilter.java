@@ -82,11 +82,16 @@ final class MinPagesFilter {
 
         int target;
         int[] start;
+        int maxExtra = MAX_EXTRA_REQUESTS;
         synchronized (CURSORS) {
             pageSize = Math.max(pageSize, first.getJSONArray("result").length());
             target = pageSize;
             if (page <= 1) removeCursors(base);
             start = CURSORS.get(base + "|" + page);
+            // [FORK] pages before a bookmark jump are plain server pages: filling them from the next
+            // server pages would repeat what the user just saw on the page after
+            int[] jump = CURSORS.get(base + "|jump");
+            if (start == null && jump != null && page < jump[0]) maxExtra = 0;
         }
         int serverPage = start != null ? start[0] : page;
         int offset = start != null ? start[1] : 0;
@@ -110,7 +115,7 @@ final class MinPagesFilter {
             }
             nextPage = serverPage + 1;
             nextOffset = 0;
-            if (out.size() >= target || nextPage > totalPages || extra >= MAX_EXTRA_REQUESTS) break;
+            if (out.size() >= target || nextPage > totalPages || extra >= maxExtra) break;
             extra++;
             offset = 0;
             serverPage = nextPage;
@@ -129,6 +134,22 @@ final class MinPagesFilter {
         return new Result(out, exhausted ? page : totalPages);
     }
 
+    /**
+     * [FORK] A bookmark opens the list directly on {@code page}: forget what we knew about this list
+     * and remember that the pages before it must not be filled.
+     *
+     * @param url any url of the list (contains the page param)
+     */
+    static void markJump(@NonNull String url, int page) {
+        Matcher matcher = PAGE_PARAM.matcher(url);
+        if (!matcher.find()) return;
+        String base = matcher.replaceFirst("$1#");
+        synchronized (CURSORS) {
+            removeCursors(base);
+            CURSORS.put(base + "|jump", new int[]{page});
+        }
+    }
+
     private static void removeCursors(String base) {
         Iterator<String> it = CURSORS.keySet().iterator();
         while (it.hasNext()) {
@@ -139,10 +160,20 @@ final class MinPagesFilter {
     @Nullable
     private static JSONObject fetch(@NonNull Context context, @NonNull String url, int serverPage) {
         String pageUrl = PAGE_PARAM.matcher(url).replaceFirst("$1" + serverPage);
-        try (Response response = Global.getClient(context).newCall(new Request.Builder().url(pageUrl).build()).execute()) {
-            if (!response.isSuccessful() || response.body() == null) return null;
-            JSONObject json = new JSONObject(response.body().string());
-            return json.has("result") ? json : null;
+        try {
+            // [FORK] the server answers 429 to bursts: wait a bit and try again
+            for (int attempt = 0; attempt < 3; attempt++) {
+                try (Response response = Global.getClient(context).newCall(new Request.Builder().url(pageUrl).build()).execute()) {
+                    if (response.code() == 429 && attempt < 2) {
+                        Thread.sleep(1500L * (attempt + 1));
+                        continue;
+                    }
+                    if (!response.isSuccessful() || response.body() == null) return null;
+                    JSONObject json = new JSONObject(response.body().string());
+                    return json.has("result") ? json : null;
+                }
+            }
+            return null;
         } catch (Exception e) {
             LogUtility.e("MinPagesFilter: unable to fetch " + pageUrl, e);
             return null;
