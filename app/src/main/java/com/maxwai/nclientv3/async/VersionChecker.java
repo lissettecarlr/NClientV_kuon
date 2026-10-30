@@ -32,14 +32,15 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class VersionChecker {
-    private static final String RELEASE_API_URL = "https://api.github.com/repos/maxwai/NClientV3/releases";
-    private static final String LATEST_RELEASE_URL = "https://github.com/maxwai/NClientV3/releases/latest";
+    // [FORK] updates come from the fork, not from upstream (maxwai/NClientV3)
+    private static final String RELEASE_API_URL = "https://api.github.com/repos/lissettecarlr/NClientV_kuon/releases";
+    private static final String LATEST_RELEASE_URL = "https://github.com/lissettecarlr/NClientV_kuon/releases/latest";
     private static String latest = null;
     private final AppCompatActivity context;
     private String downloadUrl;
 
     public VersionChecker(AppCompatActivity context, final boolean silent) {
-        boolean withPrerelease = Global.isEnableBeta();
+        boolean withPrerelease = false;// [FORK] beta option removed, only stable releases
         this.context = context;
         if (latest != null && Global.hasStoragePermission(context)) {
             downloadVersion(latest);
