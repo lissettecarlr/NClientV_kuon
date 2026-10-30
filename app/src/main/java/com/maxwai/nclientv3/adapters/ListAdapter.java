@@ -20,6 +20,7 @@ import com.maxwai.nclientv3.api.components.GenericGallery;
 import com.maxwai.nclientv3.api.enums.Language;
 import com.maxwai.nclientv3.async.database.Queries;
 import com.maxwai.nclientv3.components.activities.BaseActivity;
+import com.maxwai.nclientv3.components.status.CompletedSync;
 import com.maxwai.nclientv3.settings.Global;
 import com.maxwai.nclientv3.settings.TagV2;
 import com.maxwai.nclientv3.utility.ImageDownloadUtility;
@@ -50,6 +51,7 @@ public class ListAdapter extends RecyclerView.Adapter<GenericAdapter.ViewHolder>
             }
         };
         queryString = TagV2.getAvoidedTags();
+        CompletedSync.bind(this, statuses);// [FORK]
     }
 
     @NonNull
