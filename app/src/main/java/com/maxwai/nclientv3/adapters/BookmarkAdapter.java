@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatImageButton;
@@ -15,6 +16,8 @@ import com.google.android.material.color.MaterialColors;
 import com.maxwai.nclientv3.BookmarkActivity;
 import com.maxwai.nclientv3.MainActivity;
 import com.maxwai.nclientv3.R;
+import com.maxwai.nclientv3.api.BookmarkSeeker;
+import com.maxwai.nclientv3.api.InspectorV3;
 import com.maxwai.nclientv3.async.database.Queries;
 import com.maxwai.nclientv3.components.classes.Bookmark;
 import com.maxwai.nclientv3.utility.IntentUtility;
@@ -26,6 +29,7 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.ViewHo
 
     private final List<Bookmark> bookmarks;
     private final BookmarkActivity bookmarkActivity;
+    private boolean seeking = false;// [FORK]
 
     public BookmarkAdapter(BookmarkActivity bookmarkActivity) {
         this.bookmarkActivity = bookmarkActivity;
@@ -59,9 +63,30 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.ViewHo
      * @param bookmark bookmark to load
      */
     private void loadBookmark(Bookmark bookmark) {
+        // [FORK] the list moved since the bookmark was saved: look for the page of the anchor gallery
+        if (bookmark.canSeek()) {
+            if (seeking) return;
+            seeking = true;
+            Toast.makeText(bookmarkActivity, R.string.bookmark_seeking, Toast.LENGTH_SHORT).show();
+            new Thread(() -> {
+                int page = BookmarkSeeker.seek(bookmarkActivity, bookmark.url, bookmark.page, bookmark.anchor);
+                bookmarkActivity.runOnUiThread(() -> {
+                    seeking = false;
+                    if (!bookmarkActivity.isFinishing()) openBookmark(bookmark, page);
+                });
+            }).start();
+            return;
+        }
+        openBookmark(bookmark, bookmark.page);
+    }
+
+    private void openBookmark(Bookmark bookmark, int page) {
         Intent i = new Intent(bookmarkActivity, MainActivity.class);
         i.putExtra(bookmarkActivity.getPackageName() + ".BYBOOKMARK", true);
-        i.putExtra(bookmarkActivity.getPackageName() + ".INSPECTOR", bookmark.createInspector(bookmarkActivity, null));
+        InspectorV3 inspector = bookmark.createInspector(bookmarkActivity, null);
+        if (page != bookmark.page) inspector.setPage(page);// [FORK]
+        i.putExtra(bookmarkActivity.getPackageName() + ".INSPECTOR", inspector);
+        if (bookmark.canSeek()) i.putExtra(bookmarkActivity.getPackageName() + ".ANCHOR", bookmark.anchor);// [FORK]
         IntentUtility.startAnotherActivity(bookmarkActivity, i);
     }
 

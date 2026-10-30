@@ -10,6 +10,7 @@
     <string name="title_hide_gay">Hide gay content</string>
     <string name="summary_hide_gay">Hide galleries tagged yaoi or males only in lists and searches (not when you search these tags yourself)</string>
     <string name="search_hint_with_tags">Search title, or type a tag name (Chinese works too)</string>
+    <string name="bookmark_seeking">Looking for where you left off…</string>
     <string name="title_min_pages">Minimum page count</string>
     <string name="summary_min_pages">Hide galleries with fewer pages than this value in lists and searches (0 = disabled)</string>
 </resources>

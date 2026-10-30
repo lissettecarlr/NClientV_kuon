@@ -103,6 +103,7 @@ public class MainActivity extends BaseActivity
     private NavigationView navigationView;
     private ModeType modeType = ModeType.UNKNOWN;
     private int idOpenedGallery = -1;//Position in the recycler of the opened gallery
+    private int bookmarkAnchor = 0;// [FORK] gallery id to scroll to after opening a bookmark
     private boolean inspecting = false, filteringTag = false;
     private SortType temporaryType;
     private Snackbar snackbar = null;
@@ -114,7 +115,12 @@ public class MainActivity extends BaseActivity
             super.onSuccess(galleries);
             adapter.restartDataset(galleries);
             showPageSwitcher(inspector.getPage(), inspector.getPageCount());
-            runOnUiThread(() -> recycler.smoothScrollToPosition(0));
+            // [FORK] opened from a bookmark: show the anchor gallery (newer ones are just above it)
+            int anchorPos = findAnchor(galleries);
+            runOnUiThread(() -> {
+                if (anchorPos > 0) recycler.scrollToPosition(anchorPos);
+                else recycler.smoothScrollToPosition(0);
+            });
         }
     };
     final Runnable changeLanguageRunnable = () -> {
@@ -325,7 +331,23 @@ public class MainActivity extends BaseActivity
         modeType = ModeType.NORMAL;
     }
 
+    /**
+     * [FORK] one shot: only the first loaded page of a bookmark has to scroll to the anchor
+     *
+     * @return position of the anchor gallery in <code>galleries</code>, -1 if none
+     */
+    private int findAnchor(List<GenericGallery> galleries) {
+        int anchor = bookmarkAnchor;
+        bookmarkAnchor = 0;
+        if (anchor <= 0 || galleries == null) return -1;
+        for (int i = 0; i < galleries.size(); i++) {
+            if (galleries.get(i).getId() == anchor) return i;
+        }
+        return -1;
+    }
+
     private void useBookmarkMode(Intent intent, String packageName) {
+        bookmarkAnchor = intent.getIntExtra(packageName + ".ANCHOR", 0);// [FORK]
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             inspector = intent.getParcelableExtra(packageName + ".INSPECTOR", InspectorV3.class);
         } else {
