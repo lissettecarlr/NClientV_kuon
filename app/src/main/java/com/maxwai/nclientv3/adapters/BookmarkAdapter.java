@@ -12,7 +12,7 @@ import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.color.MaterialColors;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.maxwai.nclientv3.BookmarkActivity;
 import com.maxwai.nclientv3.MainActivity;
 import com.maxwai.nclientv3.R;
@@ -52,9 +52,17 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.ViewHo
         holder.queryText.setText(bookmark.toString());
         holder.pageLabel.setText(bookmarkActivity.getString(R.string.bookmark_page_format, bookmark.page));
 
-        holder.deleteButton.setOnClickListener(v -> removeBookmarkAtPosition(position));
-
         holder.rootLayout.setOnClickListener(v -> loadBookmark(bookmark));
+        // [FORK] the small X was hard to hit: long press the bookmark to delete it
+        holder.rootLayout.setOnLongClickListener(v -> {
+            new MaterialAlertDialogBuilder(bookmarkActivity)
+                .setTitle(bookmark.toString())
+                .setItems(new CharSequence[]{bookmarkActivity.getString(R.string.delete)},
+                    (dialog, which) -> removeBookmarkAtPosition(bookmarks.indexOf(bookmark)))
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+            return true;
+        });
     }
 
     /**
@@ -117,8 +125,7 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.ViewHo
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             deleteButton = itemView.findViewById(R.id.remove_button);
-            // [FORK] the close icon was invisible in the light theme: follow the theme text color
-            deleteButton.setColorFilter(MaterialColors.getColor(deleteButton, com.google.android.material.R.attr.colorOnSurface));
+            deleteButton.setVisibility(View.GONE);// [FORK] replaced by long press, see onBindViewHolder
             pageLabel = itemView.findViewById(R.id.page);
             queryText = itemView.findViewById(R.id.title);
             rootLayout = itemView.findViewById(R.id.master_layout);
