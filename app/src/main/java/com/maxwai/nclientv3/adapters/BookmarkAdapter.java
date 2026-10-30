@@ -11,6 +11,7 @@ import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.color.MaterialColors;
 import com.maxwai.nclientv3.BookmarkActivity;
 import com.maxwai.nclientv3.MainActivity;
 import com.maxwai.nclientv3.R;
@@ -91,6 +92,8 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.ViewHo
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             deleteButton = itemView.findViewById(R.id.remove_button);
+            // [FORK] the close icon was invisible in the light theme: follow the theme text color
+            deleteButton.setColorFilter(MaterialColors.getColor(deleteButton, com.google.android.material.R.attr.colorOnSurface));
             pageLabel = itemView.findViewById(R.id.page);
             queryText = itemView.findViewById(R.id.title);
             rootLayout = itemView.findViewById(R.id.master_layout);
