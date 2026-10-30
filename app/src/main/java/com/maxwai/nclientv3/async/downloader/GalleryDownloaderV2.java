@@ -13,6 +13,7 @@ import com.maxwai.nclientv3.api.InspectorV3;
 import com.maxwai.nclientv3.api.components.Gallery;
 import com.maxwai.nclientv3.api.local.LocalGallery;
 import com.maxwai.nclientv3.async.database.Queries;
+import com.maxwai.nclientv3.components.status.CompletedSync;
 import com.maxwai.nclientv3.settings.Global;
 import com.maxwai.nclientv3.utility.LogUtility;
 import com.maxwai.nclientv3.utility.Utility;
@@ -122,6 +123,9 @@ public class GalleryDownloaderV2 {
         for (DownloadObserver observer : observers) observer.triggerEndDownload(this);
         LogUtility.d("Delete 75: " + id);
         Queries.DownloadTable.removeGallery(id);
+        // [FORK] fully downloaded -> "Completed". Must be after removeGallery, which deletes the gallery row
+        if (gallery != null && start <= 0 && end >= gallery.getPageCount() - 1)
+            CompletedSync.markCompleted(context, gallery);
     }
 
     private void onUpdate() {

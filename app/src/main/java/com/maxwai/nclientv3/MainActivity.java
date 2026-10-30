@@ -51,6 +51,7 @@ import com.maxwai.nclientv3.async.VersionChecker;
 import com.maxwai.nclientv3.async.database.Queries;
 import com.maxwai.nclientv3.async.downloader.DownloadGalleryV2;
 import com.maxwai.nclientv3.components.activities.BaseActivity;
+import com.maxwai.nclientv3.components.status.CompletedSync;
 import com.maxwai.nclientv3.components.views.PageSwitcher;
 import com.maxwai.nclientv3.components.widgets.CustomGridLayoutManager;
 import com.maxwai.nclientv3.settings.AuthStore;
@@ -58,6 +59,7 @@ import com.maxwai.nclientv3.settings.Global;
 import com.maxwai.nclientv3.settings.Login;
 import com.maxwai.nclientv3.settings.TagV2;
 import com.maxwai.nclientv3.utility.LogUtility;
+import com.maxwai.nclientv3.utility.TagTranslator;
 import com.maxwai.nclientv3.utility.Utility;
 
 import java.util.ArrayList;
@@ -127,6 +129,7 @@ public class MainActivity extends BaseActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        TagTranslator.preload(this);// [FORK]
         //load inspector
         selectStartMode(getIntent(), getPackageName());
         LogUtility.d("Main started with mode " + modeType);
@@ -185,7 +188,7 @@ public class MainActivity extends BaseActivity
                 actionBar.setTitle(inspector.getSearchTitle());
                 break;
             case TAG:
-                actionBar.setTitle(inspector.getTag().getName());
+                actionBar.setTitle(TagTranslator.display(this, inspector.getTag()));// [FORK] display only
                 break;
             case NORMAL:
                 actionBar.setTitle(R.string.app_name);
@@ -673,8 +676,12 @@ public class MainActivity extends BaseActivity
             .setIcon(R.drawable.ic_file)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.ok, (dialog, which) -> {
-                for (GenericGallery g : inspector.getGalleries())
+                for (GenericGallery g : inspector.getGalleries()) {
                     DownloadGalleryV2.downloadGallery(MainActivity.this, g);
+                    CompletedSync.markCompleted(MainActivity.this, g.getId());// [FORK]
+                }
+                adapter.resetStatuses();
+                adapter.notifyDataSetChanged();
             });
         builder.show();
     }

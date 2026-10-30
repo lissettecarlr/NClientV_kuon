@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 
+import com.maxwai.nclientv3.components.activities.AppLock;
 import com.maxwai.nclientv3.components.activities.GeneralActivity;
 
 import java.util.concurrent.Executor;
@@ -20,6 +21,7 @@ import java.util.concurrent.Executor;
 public class PINActivity extends GeneralActivity {
     private SharedPreferences preferences;
     private boolean authSuccess = false;
+    private boolean leaving = false;// [FORK]
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +51,7 @@ public class PINActivity extends GeneralActivity {
                 @NonNull BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
                 authSuccess = true;
+                AppLock.unlock();// [FORK]
                 finish();
             }
 
@@ -80,9 +83,27 @@ public class PINActivity extends GeneralActivity {
 
     @Override
     public void finish() {
+        // [FORK] shown over another activity (deep link, back from background): just go back to it,
+        // and leave the app when the user gives up
+        if (getIntent().getBooleanExtra(AppLock.EXTRA_OVERLAY, false)) {
+            if (!authSuccess && !leaving) {
+                leaving = true;
+                finishAffinity();
+                return;
+            }
+            super.finish();
+            return;
+        }
         Intent i = new Intent(this, MainActivity.class);
         if (!hasPin() || authSuccess) startActivity(i);
         authSuccess = false;
         super.finish();
+    }
+
+    // [FORK]
+    @Override
+    protected void onDestroy() {
+        if (getIntent().getBooleanExtra(AppLock.EXTRA_OVERLAY, false)) AppLock.promptEnded();
+        super.onDestroy();
     }
 }

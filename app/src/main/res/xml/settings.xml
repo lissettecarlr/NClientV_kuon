@@ -184,6 +184,28 @@
             android:title="@string/favorite_count"
             app:iconSpaceReserved="false"
             app:showSeekBarValue="true" />
+        <!-- [FORK] -->
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="@string/preference_key_show_tag_translation"
+            android:summary="@string/summary_show_tag_translation"
+            android:title="@string/title_show_tag_translation"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="@string/preference_key_hide_gay"
+            android:summary="@string/summary_hide_gay"
+            android:title="@string/title_hide_gay"
+            app:iconSpaceReserved="false" />
+        <SeekBarPreference
+            android:defaultValue="10"
+            android:key="@string/preference_key_min_pages"
+            android:max="100"
+            android:summary="@string/summary_min_pages"
+            android:title="@string/title_min_pages"
+            app:iconSpaceReserved="false"
+            app:min="0"
+            app:showSeekBarValue="true" />
     </PreferenceCategory>
 
     <PreferenceCategory

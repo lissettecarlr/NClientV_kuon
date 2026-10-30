@@ -57,6 +57,21 @@ public abstract class GeneralActivity extends AppCompatActivity {
         if (Global.hideMultitask())
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
         Global.initActivity(this);
+        AppLock.guard(this);// [FORK] lock screen also for deep links
+    }
+
+    // [FORK]
+    @Override
+    protected void onStart() {
+        super.onStart();
+        AppLock.onStarted(this);
+    }
+
+    // [FORK]
+    @Override
+    protected void onStop() {
+        super.onStop();
+        AppLock.onStopped();
     }
 
     @Override

@@ -37,6 +37,23 @@
             </LinearLayout>
         </androidx.appcompat.widget.Toolbar>
 
+        <!-- [FORK] tags picked from the suggestions, searched together (AND) -->
+        <HorizontalScrollView
+            android:id="@+id/selected_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:scrollbars="none"
+            android:visibility="gone">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/selected_tags"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true" />
+        </HorizontalScrollView>
+
         <include layout="@layout/search_options" />
     </com.google.android.material.appbar.AppBarLayout>
 

@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 import androidx.appcompat.widget.SearchView;
@@ -22,6 +23,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.maxwai.nclientv3.adapters.HistoryAdapter;
+import com.maxwai.nclientv3.adapters.TagSuggestAdapter;
 import com.maxwai.nclientv3.api.components.Ranges;
 import com.maxwai.nclientv3.api.components.Tag;
 import com.maxwai.nclientv3.api.enums.Language;
@@ -36,6 +38,7 @@ import com.maxwai.nclientv3.settings.DefaultDialogs;
 import com.maxwai.nclientv3.settings.Global;
 import com.maxwai.nclientv3.settings.Login;
 import com.maxwai.nclientv3.utility.LogUtility;
+import com.maxwai.nclientv3.utility.TagSuggest;
 import com.maxwai.nclientv3.utility.Utility;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -44,6 +47,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SearchActivity extends GeneralActivity {
     public static final int CUSTOM_ID_START = 100000000;
@@ -51,6 +56,14 @@ public class SearchActivity extends GeneralActivity {
     private final Ranges ranges = new Ranges();
     private final ArrayList<ChipTag> tags = new ArrayList<>();
     private final Chip[] addChip = new Chip[TagType.values.length];
+    // [FORK] tag suggestions while typing + the tags picked from them
+    private final ArrayList<ChipTag> pickedChips = new ArrayList<>();
+    private final ExecutorService suggestExecutor = Executors.newSingleThreadExecutor();
+    private int suggestGeneration = 0;
+    private TagSuggestAdapter suggestAdapter;
+    private RecyclerView listRecycler;
+    private View selectedScroll;
+    private ChipGroup selectedGroup;
     private ChipGroup[] groups;
     private SearchView searchView;
     private AppCompatAutoCompleteTextView autoComplete;
@@ -109,6 +122,12 @@ public class SearchActivity extends GeneralActivity {
         recyclerView.setLayoutManager(new CustomLinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+        // [FORK]
+        listRecycler = recyclerView;
+        selectedScroll = findViewById(R.id.selected_scroll);
+        selectedGroup = findViewById(R.id.selected_tags);
+        suggestAdapter = new TagSuggestAdapter(this::onSuggestionPicked);
+        searchView.setQueryHint(getString(R.string.search_hint_with_tags));
 
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -123,8 +142,12 @@ public class SearchActivity extends GeneralActivity {
                 i.putExtra(getPackageName() + ".ADVANCED", advanced);
                 if (advanced) {
                     ArrayList<Tag> tt = new ArrayList<>(tags.size());
-                    for (ChipTag t : tags)
-                        if (t.getTag().getStatus() == TagStatus.ACCEPTED) tt.add(t.getTag());
+                    for (ChipTag t : tags) {
+                        TagStatus status = t.getTag().getStatus();
+                        // [FORK] picked tags can also be excluded
+                        if (status == TagStatus.ACCEPTED || (status == TagStatus.AVOIDED && pickedChips.contains(t)))
+                            tt.add(t.getTag());
+                    }
                     i.putParcelableArrayListExtra(getPackageName() + ".TAGS", tt);
                     i.putExtra(getPackageName() + ".RANGES", ranges);
                 }
@@ -137,12 +160,69 @@ public class SearchActivity extends GeneralActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                updateSuggestions(newText);// [FORK]
                 return false;
             }
         });
 
         populateGroup();
         searchView.requestFocus();
+    }
+
+    /**
+     * [FORK] While typing, show the matching tags (English or Chinese) instead of the history
+     */
+    private void updateSuggestions(String text) {
+        String query = text == null ? "" : text.trim();
+        if (query.isEmpty()) {
+            suggestGeneration++;
+            if (listRecycler.getAdapter() != adapter) listRecycler.setAdapter(adapter);
+            return;
+        }
+        if (listRecycler.getAdapter() != suggestAdapter) listRecycler.setAdapter(suggestAdapter);
+        final int generation = ++suggestGeneration;
+        suggestExecutor.execute(() -> {
+            List<Tag> found = TagSuggest.search(this, query, 30);
+            runOnUiThread(() -> {
+                if (generation == suggestGeneration) suggestAdapter.setTags(found);
+            });
+        });
+    }
+
+    /**
+     * [FORK] A suggestion has been chosen: add it to the tags searched together
+     */
+    private void onSuggestionPicked(@NonNull Tag picked) {
+        advanced = true;
+        for (ChipTag c : tags) {
+            if (c.getTag().getId() == picked.getId() && c.getTag().getType().equals(picked.getType())) {
+                c.changeStatus(TagStatus.ACCEPTED);
+                searchView.setQuery("", false);
+                return;
+            }
+        }
+        Tag tag = new Tag(picked.getName(), picked.getCount(), picked.getId(), picked.getType(), TagStatus.ACCEPTED);
+        ChipTag c = (ChipTag) getLayoutInflater().inflate(R.layout.chip_layout_entry, selectedGroup, false);
+        c.init(tag, true, true);
+        //tap: include <-> exclude
+        c.setOnClickListener(v -> c.changeStatus(tag.getStatus() == TagStatus.ACCEPTED ? TagStatus.AVOIDED : TagStatus.ACCEPTED));
+        c.setOnCloseIconClickListener(v -> {
+            selectedGroup.removeView(c);
+            tags.remove(c);
+            pickedChips.remove(c);
+            selectedScroll.setVisibility(pickedChips.isEmpty() ? View.GONE : View.VISIBLE);
+        });
+        selectedGroup.addView(c);
+        tags.add(c);
+        pickedChips.add(c);
+        selectedScroll.setVisibility(View.VISIBLE);
+        searchView.setQuery("", false);
+    }
+
+    @Override
+    protected void onDestroy() {
+        suggestExecutor.shutdownNow();// [FORK]
+        super.onDestroy();
     }
 
     private void createPageBuilder(int title, int min, int max, int actual, DefaultDialogs.DialogResults results) {

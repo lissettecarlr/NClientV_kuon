@@ -10,6 +10,7 @@ import com.maxwai.nclientv3.R;
 import com.maxwai.nclientv3.api.components.Tag;
 import com.maxwai.nclientv3.api.enums.TagStatus;
 import com.maxwai.nclientv3.settings.Global;
+import com.maxwai.nclientv3.utility.TagTranslator;
 import com.google.android.material.chip.Chip;
 
 public class ChipTag extends Chip {
@@ -45,7 +46,7 @@ public class ChipTag extends Chip {
 
     private void setTag(Tag tag) {
         this.tag = tag;
-        setText(tag.getName());
+        setText(TagTranslator.display(getContext(), tag));// [FORK] display only
         loadStatusIcon();
     }
 

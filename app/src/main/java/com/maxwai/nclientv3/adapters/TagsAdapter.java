@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.maxwai.nclientv3.R;
 import com.maxwai.nclientv3.TagFilterActivity;
+import com.maxwai.nclientv3.utility.TagTranslator;
 import com.maxwai.nclientv3.api.components.Tag;
 import com.maxwai.nclientv3.api.enums.TagStatus;
 import com.maxwai.nclientv3.api.enums.TagType;
@@ -104,7 +105,7 @@ public class TagsAdapter extends RecyclerView.Adapter<TagsAdapter.ViewHolder> im
     public void onBindViewHolder(@NonNull final TagsAdapter.ViewHolder holder, int position) {
         cursor.moveToPosition(position);
         final Tag ent = Queries.TagTable.cursorToTag(cursor);
-        holder.title.setText(ent.getName());
+        holder.title.setText(TagTranslator.display(context, ent));// [FORK] display only
         holder.count.setText(String.format(Locale.US, "%d", ent.getCount()));
         holder.master.setOnClickListener(v -> {
             switch (tagMode) {

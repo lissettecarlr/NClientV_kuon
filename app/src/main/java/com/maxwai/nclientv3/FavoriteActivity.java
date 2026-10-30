@@ -17,6 +17,7 @@ import com.maxwai.nclientv3.api.components.Gallery;
 import com.maxwai.nclientv3.async.database.Queries;
 import com.maxwai.nclientv3.async.downloader.DownloadGalleryV2;
 import com.maxwai.nclientv3.components.activities.BaseActivity;
+import com.maxwai.nclientv3.components.status.CompletedSync;
 import com.maxwai.nclientv3.components.views.PageSwitcher;
 import com.maxwai.nclientv3.settings.Global;
 import com.maxwai.nclientv3.utility.Utility;
@@ -154,8 +155,10 @@ public class FavoriteActivity extends BaseActivity {
             .setIcon(R.drawable.ic_file)
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.ok, (dialog, which) -> {
-                for (Gallery g : adapter.getAllGalleries())
+                for (Gallery g : adapter.getAllGalleries()) {
                     DownloadGalleryV2.downloadGallery(this, g);
+                    CompletedSync.markCompleted(this, g);// [FORK]
+                }
             });
         builder.show();
     }

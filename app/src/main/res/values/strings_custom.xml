@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Fork only strings, kept apart from strings.xml to avoid merge conflicts with upstream -->
+<resources>
+    <string name="preference_key_min_pages" translatable="false">min_pages</string>
+    <string name="preference_key_show_tag_translation" translatable="false">show_tag_translation</string>
+    <string name="title_show_tag_translation">Show tag translation</string>
+    <string name="summary_show_tag_translation">Show a Chinese translation next to the tags (display only)</string>
+    <string name="preference_key_hide_gay" translatable="false">hide_gay</string>
+    <string name="title_hide_gay">Hide gay content</string>
+    <string name="summary_hide_gay">Hide galleries tagged yaoi or males only in lists and searches (not when you search these tags yourself)</string>
+    <string name="search_hint_with_tags">Search title, or type a tag name (Chinese works too)</string>
+    <string name="title_min_pages">Minimum page count</string>
+    <string name="summary_min_pages">Hide galleries with fewer pages than this value in lists and searches (0 = disabled)</string>
+</resources>

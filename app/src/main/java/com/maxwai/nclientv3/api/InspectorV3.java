@@ -424,6 +424,14 @@ public class InspectorV3 extends Thread implements Parcelable {
         JSONObject json = new JSONObject(jsonResponse);
         if (!json.has("result"))
             throw new InvalidResponseException();
+        // [FORK] hide galleries with too few pages, see MinPagesFilter
+        if (context.get() != null && MinPagesFilter.isEnabled(context.get(), requestType)) {
+            MinPagesFilter.Result r = MinPagesFilter.load(context.get(), url, page, json, MinPagesFilter.getMinPages(context.get()),
+                Global.isExactTagMatch() ? tags : null);
+            galleries = new ArrayList<>(r.galleries);
+            pageCount = r.pageCount;
+            return;
+        }
         JSONArray results = json.getJSONArray("result");
         galleries = new ArrayList<>(results.length());
         for (int i = 0; i < results.length(); i++) {

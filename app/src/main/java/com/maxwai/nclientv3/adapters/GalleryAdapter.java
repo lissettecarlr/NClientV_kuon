@@ -33,6 +33,7 @@ import com.maxwai.nclientv3.github.chrisbanes.photoview.PhotoView;
 import com.maxwai.nclientv3.settings.Global;
 import com.maxwai.nclientv3.utility.ImageDownloadUtility;
 import com.maxwai.nclientv3.utility.LogUtility;
+import com.maxwai.nclientv3.utility.TagTranslator;
 import com.maxwai.nclientv3.utility.Utility;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -190,7 +191,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
             for (int a = 0; a < tagCount; a++) {
                 final Tag tag = tagList.getTag(type, a);
                 Chip c = (Chip) inflater.inflate(R.layout.chip_layout, cg, false);
-                c.setText(tag.getName());
+                c.setText(TagTranslator.display(context, tag));// [FORK] display only
                 c.setOnClickListener(v -> {
                     Intent intent = new Intent(context, MainActivity.class);
                     intent.putExtra(context.getPackageName() + ".TAG", tag);

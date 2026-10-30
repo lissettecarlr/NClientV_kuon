@@ -33,6 +33,7 @@ import com.maxwai.nclientv3.api.components.Gallery;
 import com.maxwai.nclientv3.api.components.GenericGallery;
 import com.maxwai.nclientv3.async.database.Queries;
 import com.maxwai.nclientv3.components.activities.BaseActivity;
+import com.maxwai.nclientv3.components.status.CompletedSync;
 import com.maxwai.nclientv3.components.status.Status;
 import com.maxwai.nclientv3.components.status.StatusManager;
 import com.maxwai.nclientv3.components.views.RangeSelector;
@@ -323,7 +324,10 @@ public class GalleryActivity extends BaseActivity {
         builder
             .setNeutralButton(R.string.add, (dialog, which) -> createNewStatusDialog())
             .setNegativeButton(R.string.remove_status, (dialog, which) -> Queries.StatusMangaTable.remove(gallery.getId()))
-            .setPositiveButton(R.string.ok, (dialog, which) -> Queries.StatusMangaTable.insert(gallery, statusString))
+            .setPositiveButton(R.string.ok, (dialog, which) -> {
+                Queries.StatusMangaTable.insert(gallery, statusString);
+                CompletedSync.onStatusChosen(this, gallery, statusString);// [FORK]
+            })
             .setTitle(R.string.change_status_title)
             .show();
     }
