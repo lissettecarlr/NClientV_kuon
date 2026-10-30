@@ -278,14 +278,6 @@ public class GeneralPreferenceFragment extends PreferenceFragmentCompat {
             });
         }
         {
-            Preference enableBeta = Objects.requireNonNull(findPreference(getString(R.string.preference_key_enable_beta)));
-            enableBeta.setOnPreferenceChangeListener((preference, newValue) -> {
-                //Instant update to allow search for updates
-                Global.setEnableBeta((Boolean) newValue);
-                return true;
-            });
-        }
-        {
             Preference hasCredentials = Objects.requireNonNull(findPreference(getString(R.string.preference_key_has_credentials)));
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 hasCredentials.setOnPreferenceChangeListener((preference, newValue) -> {

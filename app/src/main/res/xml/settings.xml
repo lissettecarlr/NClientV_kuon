@@ -248,12 +248,6 @@
             android:key="@string/preference_key_check_update"
             android:title="@string/check_for_update_on_startup"
             app:iconSpaceReserved="false" />
-        <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="@string/preference_key_enable_beta"
-            android:summary="@string/summary_beta"
-            android:title="@string/check_beta_releases"
-            app:iconSpaceReserved="false" />
         <Preference
             android:key="@string/preference_key_update"
             android:title="@string/check_for_updates"
