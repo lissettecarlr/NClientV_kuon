@@ -747,10 +747,7 @@ public class MainActivity extends BaseActivity
             intent = new Intent(this, MainActivity.class);
             intent.putExtra(getPackageName() + ".FAVORITE", true);
             startActivity(intent);
-        } else if (item.getItemId() == R.id.random) {
-            intent = new Intent(this, RandomActivity.class);
-            startActivity(intent);
-        } else if (item.getItemId() == R.id.tag_manager) {
+        } else if (item.getItemId() == R.id.tag_manager) {// [FORK] random entry removed from the drawer
             intent = new Intent(this, TagFilterActivity.class);
             filteringTag = true;
             startActivity(intent);
