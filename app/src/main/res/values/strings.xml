@@ -64,7 +64,7 @@
     <string name="full_circle" translatable="false">◉</string>
     <string name="key_mobile_usage" translatable="false">mobile_usage</string>
     <string name="key_wifi_usage" translatable="false">wifi_usage</string>
-    <string name="app_version_format" formatted="true" translatable="false">NClientV3 %s</string>
+    <string name="app_version_format" formatted="true" translatable="false">NClientV_kuon %s</string>
     <string name="hashtag" translatable="false">#</string>
     <string name="page_format" formatted="true" translatable="false">%d/%d</string>
     <string name="percentage_format" formatted="true" translatable="false">%d%%</string>

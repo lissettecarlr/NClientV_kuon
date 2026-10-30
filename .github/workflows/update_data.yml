@@ -35,4 +35,4 @@ jobs:
           branch: ci/update-tags
           title: 'Update tags'
           body: 'Changed files in data directory'
-          reviewers: maxwai
+          reviewers: lissettecarlr

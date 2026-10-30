@@ -1,26 +1,28 @@
-# NClientV3
+# NClientV_kuon
 
-[![Github](https://img.shields.io/github/v/release/maxwai/NClientV3.svg?logo=github)](https://github.com/maxwai/NClientV3/releases/latest)
+NHentai 非官方 Android 客户端，是 [maxwai/NClientV3](https://github.com/maxwai/NClientV3) 的个人定制 fork。
+NClientV3 本身又 fork 自 [@Dar9586](https://github.com/Dar9586) 的 [NClientV2](https://github.com/Dar9586/NClientV2)。
 
-An unofficial NHentai Android Client. This is a fork of the original Project by [@Dar9586](https://github.com/Dar9586) found [here](https://github.com/Dar9586/NClientV2)
+适用于 API 26（Android 8）及以上设备。Android 8（SDK 26、27）请使用文件名带 `pre28` 的 APK，该版本的支持会减少。
 
-This app works for devices from API 26 (Android 8) and above.
+Releases: <https://github.com/lissettecarlr/NClientV_kuon/releases>
 
-For Devices Running Android 8 (SDK 26 and 27) there is a separate APK with `pre28` in the name. Support for this Version of the app will be reduced.
+> 应用包名仍是 `com.maxwai.nclientv3`，以便以后合并上游更新。这个 fork 不会向上游提交代码，也不会随上游发布。
 
-Releases: <https://github.com/maxwai/NClientV3/releases>
+## 与上游的区别
 
-## Migrate from original NClientV2 to NClientV3
+自定义代码尽量放在独立的新文件里，改动上游文件的地方用 `[FORK]` 注释标记。
 
-Info can be found in the [wiki](https://github.com/maxwai/NClientV3/wiki/Migrate-from-NClientV2-to-NClientV3)
+- 隐藏页数少于设定值的漫画（默认 10，设置里可改），被过滤的位置会用后面的内容补满
+- 默认隐藏带 `yaoi` / `males only` 标签的漫画（设置里可关；自己搜索这些标签时不隐藏）
+- 「已完成」状态与下载联动：下载完成自动标记已完成，标记已完成自动开始下载，下载整页则整页标记已完成
+- 标签旁显示中文翻译（仅显示，内部仍是英文，翻译数据来自 [EhTagTranslation](https://github.com/EhTagTranslation/Database)）
+- 搜索框输入时联想标签（支持英文和中文），点选后可叠加多个标签一起搜索，也可以切换成排除
+- 设置了锁屏验证时，通过链接直接打开页面或从后台回来超过 30 秒也要先验证
+- 书籍页去掉分享和评论按钮，其余操作平铺在工具栏上
+- 检查更新指向本仓库的 Releases，去掉「下载测试版」选项
 
-## Translate App
-
-You can help translate the Project by going to the Crowdin Project [here](https://crowdin.com/project/nclientv3/invite?h=a094bdfd22d231bbcd92ddb94b5cc4392828343).
-
-If your desired language is missing, write an issue, the language will be added.
-
-## API Features
+## 上游的功能
 
 - Browse main page
 - Search by query or tags
@@ -29,22 +31,33 @@ If your desired language is missing, write an issue, the language will be added.
 - Download manga
 - Favorite galleries
 - Enable PIN to access the app
+- Open in browser, bookmark
 
-## Custom feature
+## 分支与构建
 
-- Share galleries
-- Open in browser
-- Bookmark
+- `main`：发布分支，推送时由 GitHub Actions 编译 debug 包。
+- `develop`：开发分支。新功能从 `develop` 切出 `feature/xxx`，完成后合回 `develop`，发版时再从 `develop` 推到 `main`。
 
-## App Screen
+本地构建需要 JDK 17 和 Android SDK，并在项目根目录放 `keystore.properties`（仅构建 release 时用到真实值，debug 可以填假值）：
 
-|                                                                     Main page                                                                     |                                                                Lateral menu                                                                 |
-|:-------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------:|
-| ![Main page](https://raw.githubusercontent.com/maxwai/NClientV3/refs/heads/main/docs/images/phoneScreenshots/img1.png) | ![Lateral menu](https://raw.githubusercontent.com/maxwai/NClientV3/main/docs/images/phoneScreenshots/img2.png) |
-|                                                                      Search                                                                       |                                                                Random manga                                                                 |
-|        ![Search](https://raw.githubusercontent.com/maxwai/NClientV3/main/docs/images/phoneScreenshots/img3.png)        | ![Random manga](https://raw.githubusercontent.com/maxwai/NClientV3/main/docs/images/phoneScreenshots/img4.jpg) |
+```text
+storePassword=dummy
+keyPassword=dummy
+keyAlias=dummy
+storeFile=dummy.jks
+```
 
-## Contributors
+```bash
+./gradlew assemblePost28Debug
+```
+
+APK 输出在 `app/build/outputs/apk/post28/debug/`，文件名形如 `NClientV_kuon_4.2.7_debug.apk`。
+
+重新生成标签中文翻译：`python scripts/build_tag_translations.py`（输出到 `app/src/main/assets/tag_zh.json`）。
+
+## 致谢
+
+以下是上游项目 NClientV3 的贡献者：
 
 - [shirokun20](https://github.com/shirokun20) for the initial bug fixes
 - [w0x8m](https://github.com/w0x8m) for the new language picker & Chinese Simplified & Traditional translation
@@ -59,7 +72,7 @@ If your desired language is missing, write an issue, the language will be added.
 - [Locked_Fog](https://github.com/locked-fog) for Chinese Simplified translation
 - [zhongshen6](https://github.com/zhongshen6) for bug fixes
 
-## Contributors of original Project
+以下是原项目 NClientV2 的贡献者：
 
 - [Still34](https://github.com/Still34) for code cleanup & Traditional Chinese translation
 - [TacoTheDank](https://github.com/TacoTheDank) for XML and gradle cleanup
@@ -75,16 +88,6 @@ If your desired language is missing, write an issue, the language will be added.
 - [chayleaf](https://github.com/chayleaf) for Cloudflare bypass
 - [Atmosphelen](https://github.com/Atmosphelen) for Ukrainian translation
 
-## Star History
-
-<a href="https://www.star-history.com/?repos=maxwai%2FNClientV3&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=maxwai/NClientV3&type=date&theme=dark&legend=top-left&sealed_token=migTu9jM4dpLMR0uQpFgyLNFTnt5qdYCOyoruWdAajo2DIRDQMJ3ySI0dtYXNSIcAFSGve0U-m31Q3lyd9_4a5PwQEmHcoMFv5fP8zeJ4xSa-o_UBCrX_xZmBqp732tyqpBW48shykrKN1OdZZbmD061ohmh_rp4qQiOeOR5HcvVFlNkSyuo6Zf3_LFl" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=maxwai/NClientV3&type=date&legend=top-left&sealed_token=migTu9jM4dpLMR0uQpFgyLNFTnt5qdYCOyoruWdAajo2DIRDQMJ3ySI0dtYXNSIcAFSGve0U-m31Q3lyd9_4a5PwQEmHcoMFv5fP8zeJ4xSa-o_UBCrX_xZmBqp732tyqpBW48shykrKN1OdZZbmD061ohmh_rp4qQiOeOR5HcvVFlNkSyuo6Zf3_LFl" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=maxwai/NClientV3&type=date&legend=top-left&sealed_token=migTu9jM4dpLMR0uQpFgyLNFTnt5qdYCOyoruWdAajo2DIRDQMJ3ySI0dtYXNSIcAFSGve0U-m31Q3lyd9_4a5PwQEmHcoMFv5fP8zeJ4xSa-o_UBCrX_xZmBqp732tyqpBW48shykrKN1OdZZbmD061ohmh_rp4qQiOeOR5HcvVFlNkSyuo6Zf3_LFl" />
- </picture>
-</a>
-
 ## Libraries
 
 - OKHttp ([License](https://github.com/square/okhttp/blob/master/LICENSE.txt))
@@ -95,6 +98,8 @@ If your desired language is missing, write an issue, the language will be added.
 - AndroidFastScroll ([License](https://github.com/zhanghai/AndroidFastScroll/blob/master/LICENSE))
 
 ## License
+
+本项目沿用上游的 Apache License 2.0，完整文本见 [LICENSE](LICENSE)。
 
 ```text
 Copyright 2024 maxwai

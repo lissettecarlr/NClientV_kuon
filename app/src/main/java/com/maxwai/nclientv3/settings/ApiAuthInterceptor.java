@@ -34,7 +34,7 @@ public class ApiAuthInterceptor implements Interceptor {
         }
 
         Request.Builder r = request.newBuilder();
-        r.addHeader("User-Agent", "NClient/" + BuildConfig.VERSION_NAME + " (https://github.com/maxwai/NClientV3)");
+        r.addHeader("User-Agent", "NClient/" + BuildConfig.VERSION_NAME + " (https://github.com/lissettecarlr/NClientV_kuon)");
 
         if (!AuthStore.hasValidApiKey(context)) return chain.proceed(r.build());
 
