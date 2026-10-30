@@ -258,6 +258,10 @@ public class GalleryActivity extends BaseActivity {
         menu.findItem(R.id.download_gallery).setVisible(isValidOnline);
         menu.findItem(R.id.related).setVisible(isValidOnline);
         menu.findItem(R.id.comments).setVisible(false);// [FORK] removed: comments
+        // [FORK] only two entries left: show them as buttons instead of hiding them in the overflow menu
+        for (int itemId : new int[]{R.id.favorite_manager, R.id.change_view, R.id.related, R.id.download_gallery})
+            menu.findItem(itemId).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        menu.findItem(R.id.manage_status).setIcon(R.drawable.ic_check_circle).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
 
         menu.findItem(R.id.share).setVisible(false);// [FORK] removed: share
         menu.findItem(R.id.load_internet).setVisible(isLocal && gallery.isValid());
