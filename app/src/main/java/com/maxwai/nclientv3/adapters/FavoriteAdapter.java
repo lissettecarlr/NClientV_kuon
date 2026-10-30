@@ -19,6 +19,7 @@ import com.maxwai.nclientv3.GalleryActivity;
 import com.maxwai.nclientv3.R;
 import com.maxwai.nclientv3.api.components.Gallery;
 import com.maxwai.nclientv3.async.database.Queries;
+import com.maxwai.nclientv3.components.status.CompletedSync;
 import com.maxwai.nclientv3.settings.Global;
 import com.maxwai.nclientv3.utility.ImageDownloadUtility;
 import com.maxwai.nclientv3.utility.LogUtility;
@@ -42,6 +43,7 @@ public class FavoriteAdapter extends RecyclerView.Adapter<GenericAdapter.ViewHol
     public FavoriteAdapter(FavoriteActivity activity) {
         this.activity = activity;
         this.lastQuery = "";
+        CompletedSync.bind(this, statuses);// [FORK]
         setHasStableIds(true);
     }
 

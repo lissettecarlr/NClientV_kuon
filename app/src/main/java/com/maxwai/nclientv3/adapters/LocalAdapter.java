@@ -33,6 +33,7 @@ import com.maxwai.nclientv3.async.downloader.DownloadObserver;
 import com.maxwai.nclientv3.async.downloader.DownloadQueue;
 import com.maxwai.nclientv3.async.downloader.GalleryDownloaderV2;
 import com.maxwai.nclientv3.components.classes.MultichoiceAdapter;
+import com.maxwai.nclientv3.components.status.CompletedSync;
 import com.maxwai.nclientv3.settings.Global;
 import com.maxwai.nclientv3.utility.ImageDownloadUtility;
 import com.maxwai.nclientv3.utility.LogUtility;
@@ -163,6 +164,7 @@ public class LocalAdapter extends MultichoiceAdapter<Object, LocalAdapter.ViewHo
 
     public LocalAdapter(LocalActivity cont, ArrayList<LocalGallery> myDataset) {
         this.context = cont;
+        CompletedSync.bind(this, statuses);// [FORK]
         dataset = new CopyOnWriteArrayList<>(myDataset);
         colCount = cont.getColCount();
         galleryDownloaders = DownloadQueue.getDownloaders();

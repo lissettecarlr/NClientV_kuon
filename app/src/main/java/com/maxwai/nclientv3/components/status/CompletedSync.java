@@ -4,9 +4,13 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.SparseIntArray;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.maxwai.nclientv3.R;
 import com.maxwai.nclientv3.api.components.Gallery;
@@ -20,6 +24,8 @@ import com.maxwai.nclientv3.settings.Global;
 import com.maxwai.nclientv3.utility.LogUtility;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * Custom (fork only) feature: keep the "Completed" status and the downloads in sync.
@@ -66,14 +72,38 @@ public final class CompletedSync {
      */
     public static void markCompleted(@NonNull Context context, @NonNull GenericGallery gallery) {
         try {
-            if (gallery.getGalleryData() == null) {
-                markCompleted(context, gallery.getId());
-                return;
-            }
-            Queries.StatusMangaTable.insert(gallery, getCompletedStatus(context));
+            if (gallery.getGalleryData() == null) markCompleted(context, gallery.getId());
+            else Queries.StatusMangaTable.insert(gallery, getCompletedStatus(context));
+            refreshLists(gallery.getId());
         } catch (Exception e) {
             LogUtility.e("CompletedSync: unable to mark " + gallery.getId(), e);
         }
+    }
+
+    /**
+     * Lists cache the status color of every entry: forget it for {@code id} and redraw, so a status
+     * changed in the background (download finished) is visible without reloading the list
+     */
+    private static final Map<RecyclerView.Adapter<?>, SparseIntArray> LISTS = new WeakHashMap<>();
+
+    /**
+     * Register a list adapter and its status color cache, see {@link #refreshLists(int)}
+     */
+    public static void bind(@NonNull RecyclerView.Adapter<?> adapter, @NonNull SparseIntArray statusColors) {
+        synchronized (LISTS) {
+            LISTS.put(adapter, statusColors);
+        }
+    }
+
+    private static void refreshLists(int id) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            synchronized (LISTS) {
+                for (Map.Entry<RecyclerView.Adapter<?>, SparseIntArray> e : LISTS.entrySet()) {
+                    e.getValue().delete(id);
+                    e.getKey().notifyDataSetChanged();
+                }
+            }
+        });
     }
 
     /**
