@@ -13,9 +13,9 @@ val keystoreProperties = Properties().apply {
     load(FileInputStream(keystorePropertiesFile))
 }
 
-val majorVersion = 4
-val minorVersion = 2
-val patchVersion = 7
+val majorVersion = 0
+val minorVersion = 1
+val patchVersion = 0
 val buildVersion = 0
 val version = "${majorVersion}.${minorVersion}.${patchVersion}"
 

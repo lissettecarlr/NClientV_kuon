@@ -51,7 +51,7 @@ storeFile=dummy.jks
 ./gradlew assemblePost28Debug
 ```
 
-APK 输出在 `app/build/outputs/apk/post28/debug/`，文件名形如 `NClientV_kuon_4.2.7_debug.apk`。
+APK 输出在 `app/build/outputs/apk/post28/debug/`，文件名形如 `NClientV_kuon_0.1.0_debug.apk`。
 
 重新生成标签中文翻译：`python scripts/build_tag_translations.py`（输出到 `app/src/main/assets/tag_zh.json`）。
 

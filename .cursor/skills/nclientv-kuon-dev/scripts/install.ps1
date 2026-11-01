@@ -11,7 +11,7 @@ if (-not ((& $adb devices) -match '\tdevice')) { Write-Error 'No phone connected
 
 for ($try = 1; $try -le 2; $try++) {
     $out = "$env:TEMP\nclient_install.txt"
-    $p = Start-Process -PassThru -NoNewWindow -RedirectStandardOutput $out -FilePath $adb -ArgumentList 'install', '-r', $apk
+    $p = Start-Process -PassThru -NoNewWindow -RedirectStandardOutput $out -FilePath $adb -ArgumentList 'install', '-r', '-d', $apk
     $tapped = $false
     for ($i = 0; $i -lt 20 -and -not $p.HasExited; $i++) {
         Start-Sleep 2
