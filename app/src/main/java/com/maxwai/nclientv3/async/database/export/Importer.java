@@ -12,13 +12,18 @@ import androidx.annotation.NonNull;
 import com.maxwai.nclientv3.settings.Database;
 import com.maxwai.nclientv3.utility.LogUtility;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 class Importer {
     private static void importSharedPreferences(Context context, String sharedName, InputStream stream) throws IOException {
@@ -68,6 +73,15 @@ class Importer {
         if (db == null)
             throw new IOException("Can't import Database, don't have database connection yet");
         db.beginTransaction();
+        try {// [FORK] the transaction was never ended when the file was bad: rolled back now
+            importTables(db, stream);
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    private static void importTables(SQLiteDatabase db, InputStream stream) throws IOException {
         JsonReader reader = new JsonReader(new InputStreamReader(stream));
         reader.beginObject();
         while (reader.hasNext()) {
@@ -102,25 +116,41 @@ class Importer {
         }
 
         reader.endObject();
-        db.setTransactionSuccessful();
-        db.endTransaction();
     }
 
     public static void importData(@NonNull Context context, Uri selectedFile) throws IOException {
-        InputStream stream = context.getContentResolver().openInputStream(selectedFile);
-        try (ZipInputStream inputStream = new ZipInputStream(stream)) {
-            ZipEntry entry;
-            while ((entry = inputStream.getNextEntry()) != null) {
-                String name = entry.getName();
-                LogUtility.d("Importing: " + name);
-                if (Exporter.DB_ZIP_FILE.equals(name)) {
-                    importDB(inputStream);
-                } else {
-                    String shared = name.substring(0, name.length() - 5);
-                    importSharedPreferences(context, shared, inputStream);
-                }
-                inputStream.closeEntry();
+        // [FORK] copy the file and open it as a ZipFile first: a truncated backup (export interrupted) has no
+        // central directory, so it fails here with a ZipException before anything of the database is touched
+        File copy = File.createTempFile("import", ".zip", context.getCacheDir());
+        try {
+            try (InputStream in = context.getContentResolver().openInputStream(selectedFile);
+                 OutputStream out = new FileOutputStream(copy)) {
+                if (in == null) throw new IOException("Can't open " + selectedFile);
+                byte[] buffer = new byte[16384];
+                int read;
+                while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
             }
+            try (ZipFile zip = new ZipFile(copy)) {
+                if (zip.getEntry(Exporter.DB_ZIP_FILE) == null)
+                    throw new ZipException("Not a backup: no " + Exporter.DB_ZIP_FILE);
+                Enumeration<? extends ZipEntry> entries = zip.entries();
+                while (entries.hasMoreElements()) {
+                    ZipEntry entry = entries.nextElement();
+                    String name = entry.getName();
+                    LogUtility.d("Importing: " + name);
+                    try (InputStream inputStream = zip.getInputStream(entry)) {
+                        if (Exporter.DB_ZIP_FILE.equals(name)) {
+                            importDB(inputStream);
+                        } else {
+                            String shared = name.substring(0, name.length() - 5);
+                            importSharedPreferences(context, shared, inputStream);
+                        }
+                    }
+                }
+            }
+        } finally {
+            //noinspection ResultOfMethodCallIgnored
+            copy.delete();
         }
     }
 }

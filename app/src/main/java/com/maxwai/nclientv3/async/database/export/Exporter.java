@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.provider.DocumentsContract;
 import android.text.format.DateFormat;
 import android.util.JsonWriter;
 
@@ -13,11 +14,16 @@ import com.maxwai.nclientv3.async.database.Queries;
 import com.maxwai.nclientv3.settings.Database;
 import com.maxwai.nclientv3.utility.LogUtility;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
@@ -95,21 +101,54 @@ public class Exporter {
 
     public static void exportData(SettingsActivity context, Uri selectedFile) throws IOException {
 
-        OutputStream outputStream = context.getContentResolver().openOutputStream(selectedFile);
-        try (ZipOutputStream zip = new ZipOutputStream(outputStream)) {
-            zip.setLevel(Deflater.BEST_COMPRESSION);
+        // [FORK] build the zip in the cache first and copy it to the destination at the end (a fraction of a
+        // second): the destination used to be written during the whole ~15 s dump, and when the app was killed
+        // meanwhile it kept a truncated zip that can't be imported. On failure the empty file is removed.
+        File temp = File.createTempFile("export", ".zip", context.getCacheDir());
+        try {
+            try (OutputStream out = new FileOutputStream(temp);
+                 ZipOutputStream zip = new ZipOutputStream(out)) {
+                zip.setLevel(Deflater.DEFAULT_COMPRESSION);// [FORK] BEST_COMPRESSION was much slower for a few % less
 
-            zip.putNextEntry(new ZipEntry(DB_ZIP_FILE));
-            dumpDB(zip);
-            zip.closeEntry();
-
-            for (String shared : SHARED_FILES) {
-                zip.putNextEntry(new ZipEntry(shared + ".json"));
-                exportSharedPreferences(context, shared, zip);
+                zip.putNextEntry(new ZipEntry(DB_ZIP_FILE));
+                dumpDB(zip);
                 zip.closeEntry();
+
+                for (String shared : SHARED_FILES) {
+                    zip.putNextEntry(new ZipEntry(shared + ".json"));
+                    exportSharedPreferences(context, shared, zip);
+                    zip.closeEntry();
+                }
             }
+            try (InputStream in = new FileInputStream(temp);
+                 OutputStream outputStream = context.getContentResolver().openOutputStream(selectedFile)) {
+                if (outputStream == null) throw new IOException("Can't open " + selectedFile);
+                byte[] buffer = new byte[16384];
+                int read;
+                while ((read = in.read(buffer)) != -1) outputStream.write(buffer, 0, read);
+            }
+        } catch (IOException | RuntimeException e) {
+            deletePartial(context, selectedFile);
+            throw e;
+        } finally {
+            //noinspection ResultOfMethodCallIgnored
+            temp.delete();
         }
 
+    }
+
+    // [FORK]
+    private static void deletePartial(SettingsActivity context, Uri file) {
+        try {
+            if ("file".equals(file.getScheme())) {
+                //noinspection ResultOfMethodCallIgnored
+                new File(Objects.requireNonNull(file.getPath())).delete();
+            } else {
+                DocumentsContract.deleteDocument(context.getContentResolver(), file);
+            }
+        } catch (Exception e) {
+            LogUtility.e("Can't remove the partial export", e);
+        }
     }
 
     private static void exportSharedPreferences(Context context, String sharedName, OutputStream stream) throws IOException {
