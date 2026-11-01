@@ -33,12 +33,6 @@
             app:iconSpaceReserved="false"
             app:isPreferenceVisible="false" /><!-- [FORK] no login needed, hidden like the site mirror -->
 
-        <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="@string/preference_key_fake_icon"
-            android:summary="@string/summary_disguise_app"
-            android:title="@string/disguise_app_in_drawer"
-            app:iconSpaceReserved="false" />
         <Preference
             android:key="@string/preference_key_status_screen"
             android:title="@string/manage_statuses"
@@ -79,6 +73,12 @@
             android:key="@string/preference_key_has_credentials"
             android:summary="@string/setting_device_credentials"
             android:title="@string/use_device_credentials"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="@string/preference_key_fake_icon"
+            android:summary="@string/summary_disguise_app"
+            android:title="@string/disguise_app_in_drawer"
             app:iconSpaceReserved="false" />
         <SwitchPreferenceCompat
             android:defaultValue="true"
