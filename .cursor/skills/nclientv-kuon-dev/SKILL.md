@@ -78,6 +78,11 @@ Branches: `develop` (working base, does not need to compile on CI) and `main` (p
 4. `git checkout develop; git merge --no-ff feature/xxx -m "Merge feature/xxx into develop"; git branch -d feature/xxx`.
 5. Push only when the user asks: `git push origin develop`. Publishing: develop -> `main` (confirm first, it triggers CI).
 
+### Release and in-app update
+
+Pushing `main` also runs `.github/workflows/release.yml`: it builds the signed `assemblePost28Release` APK and publishes GitHub release `v<major>.<minor>.<patch>` (read from `app/build.gradle.kts`) with the APK and the last commit subjects as notes. If that tag already exists nothing is published (warning in the log), so **bump `patchVersion` before pushing `main`**. Secrets needed: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`; the same key forever (a different key makes phones refuse the update). The local `keystore.properties` only points to a dummy file: there is no local release key, `assemblePost28Release` fails at signing unless a temporary one is put in (keytool, then restore the file).
+The app (`async/VersionChecker`, checked on each cold start, setting `preference_key_check_update`) reads `api.github.com/repos/lissettecarlr/NClientV_kuon/releases`, takes the newest non-prerelease, compares the number in `tag_name` with its own `versionName`, and downloads the first `.apk` asset (not containing `pre28`) to `<external files>/NClientV3/Update`, then opens the system installer. Tested end to end on the Xiaomi with a local fake release server (`adb reverse`, cleartext, patched URL, not committed).
+
 Untracked `build.log` in the root is scratch, never commit it. Stage with `git add app` (or explicit paths).
 
 ## Update the Desktop APK
