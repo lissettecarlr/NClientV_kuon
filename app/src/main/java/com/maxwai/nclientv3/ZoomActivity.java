@@ -275,6 +275,7 @@ public class ZoomActivity extends GeneralActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_zoom, menu);
+        menu.findItem(R.id.share).setVisible(false);// [FORK] removed: share (same as in the gallery page)
         Utility.tintMenu(this, menu);
         return true;
     }
