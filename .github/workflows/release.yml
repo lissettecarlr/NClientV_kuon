@@ -28,6 +28,8 @@ jobs:
         steps:
             -   name: Checkout sources
                 uses: actions/checkout@v7
+                with:
+                    fetch-depth: 0 # the release notes list the commits since the previous release
 
             -   name: Read version from build.gradle.kts
                 id: version
@@ -87,9 +89,12 @@ jobs:
                     version="${{ steps.version.outputs.version }}"
                     apk="$(find app/build/outputs/apk/post28/release -name 'NClientV_kuon_*.apk' | head -n 1)"
                     test -f "$apk" || { echo "::error::APK not found"; exit 1; }
+                    # commits since the previous release (merge commits left out), at most 30
+                    previous="$(git describe --tags --abbrev=0 --match 'v*' 2> /dev/null || true)"
+                    if [ -n "$previous" ]; then range="$previous..HEAD"; else range="HEAD"; fi
                     {
                         echo "NClientV_kuon $version"
-                        git log -n 15 --pretty='- %s'
+                        git log "$range" --no-merges -n 30 --pretty='- %s'
                     } > "$RUNNER_TEMP/notes.md"
                     gh release create "v$version" "$apk" \
                         --target "${{ github.sha }}" \
