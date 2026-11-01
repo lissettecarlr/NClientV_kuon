@@ -1,5 +1,6 @@
 package com.maxwai.nclientv3.ui.main;
 
+import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ import com.maxwai.nclientv3.R;
 import com.maxwai.nclientv3.adapters.StatusViewerAdapter;
 import com.maxwai.nclientv3.components.widgets.CustomGridLayoutManager;
 import com.maxwai.nclientv3.settings.Global;
+import com.maxwai.nclientv3.utility.WindowColumns;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -39,7 +41,9 @@ public class PlaceholderFragment extends Fragment {
     }
 
     private int getColumnCount(boolean landscape) {
-        return landscape ? Global.getColLandStatus() : Global.getColPortStatus();
+        int count = landscape ? Global.getColLandStatus() : Global.getColPortStatus();
+        Context context = getContext();
+        return context == null ? count : WindowColumns.adjust(context, count, landscape);// [FORK] wide foldables
     }
 
     @Override

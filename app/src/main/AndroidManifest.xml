@@ -33,7 +33,7 @@
         <activity android:name=".StatusManagerActivity" />
         <activity
             android:name=".PINActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|density"
             android:exported="true">
             <intent-filter>
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -74,7 +74,7 @@
         <activity android:name=".SearchActivity" />
         <activity
             android:name=".MainActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|density"
             android:exported="true"
             android:hardwareAccelerated="true"
             android:parentActivityName=".PINActivity">
@@ -122,16 +122,16 @@
         </activity>
         <activity
             android:name=".ZoomActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|density"
             android:label="@string/title_activity_zoom"
             android:parentActivityName=".GalleryActivity" />
         <activity
             android:name=".LocalActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|density"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".TagFilterActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|density"
             android:exported="true"
             android:label="@string/title_activity_tag_filter"
             android:parentActivityName=".MainActivity">
@@ -173,7 +173,7 @@
         </activity>
         <activity
             android:name=".FavoriteActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|density"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".CopyToClipboardActivity"

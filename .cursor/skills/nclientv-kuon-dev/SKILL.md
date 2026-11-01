@@ -37,6 +37,13 @@ powershell -File .cursor/skills/nclientv-kuon-dev/scripts/ui.ps1        # list t
 - Be careful with the user's real data on the phone (bookmarks, favorites, status): do not delete them while testing, cancel dialogs.
 - `adb` commands may be blocked by auto-review; retry the same call with `request_smart_mode_approval` (the user authorized device testing).
 
+### Testing foldable / odd screen sizes on the tablet
+
+`fold.ps1 <profile>` emulates a screen with `wm size` + `wm density` (same dp as the real phone, px scaled to fit the 1600x2560 panel). Switching profiles while the app runs = fold/unfold event (activity must not restart; check `Main started with mode` in logcat).
+Profiles: `phone`, `mi-outer`, `mi-inner-port`, `mi-inner-land` (Xiaomi wide fold), `duo-outer`, `duo-inner-port`, `duo-inner-land` (iPhone Duo geometry only, it is iOS). **Always finish with `fold.ps1 reset`** and check `wm size` shows only `Physical`.
+Screenshots need FLAG_SECURE off: pref `hide_multitasking` = false in `Settings.xml` (default is true, so the original file normally has no such key). Save the original first (`cmd /c "adb exec-out run-as ... cat shared_prefs/Settings.xml > %TEMP%\Settings.orig.xml"`) and restore it when done. Then: `cmd /c "adb exec-out screencap -p > %TEMP%\s.png"` and read the PNG.
+Window-size dependent code: `WindowColumns.adjust` (columns follow the window width), `Global.initScreenSize` (refreshed in `GeneralActivity.onConfigurationChanged`). GalleryActivity has no `configChanges` on purpose (restarts on fold).
+
 ### Editing the app database or prefs on the device
 
 `run-as com.maxwai.nclientv3.debug` works (debug build). Binary files must not go through PowerShell `>`:

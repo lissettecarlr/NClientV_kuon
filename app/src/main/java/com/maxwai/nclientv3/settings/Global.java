@@ -185,10 +185,9 @@ public class Global {
     }
 
     public static void initScreenSize(AppCompatActivity activity) {
-        if (screenSize == null) {
-            screenSize = new Point();
-            activity.getWindowManager().getDefaultDisplay().getSize(screenSize);
-        }
+        // [FORK] always refresh: a foldable changes size when folded / unfolded
+        if (screenSize == null) screenSize = new Point();
+        activity.getWindowManager().getDefaultDisplay().getSize(screenSize);
     }
 
     private static void initGallerySize() {

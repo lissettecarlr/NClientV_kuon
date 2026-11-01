@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.maxwai.nclientv3.components.widgets.CustomGridLayoutManager;
+import com.maxwai.nclientv3.utility.WindowColumns;
 
 public abstract class BaseActivity extends GeneralActivity {
     protected RecyclerView recycler;
@@ -45,6 +46,8 @@ public abstract class BaseActivity extends GeneralActivity {
         CustomGridLayoutManager manager = (CustomGridLayoutManager) recycler.getLayoutManager();
         RecyclerView.Adapter<?> adapter = recycler.getAdapter();
         int count = landscape ? getLandscapeColumnCount() : getPortraitColumnCount();
+        if (count <= 0) return;// [FORK] not a plain grid (the gallery page sets up its own layout)
+        count = WindowColumns.adjust(this, count, landscape);// [FORK] wide foldables
         int position = 0;
 
         if (manager != null)
