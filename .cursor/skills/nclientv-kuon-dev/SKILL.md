@@ -37,6 +37,14 @@ powershell -File .cursor/skills/nclientv-kuon-dev/scripts/ui.ps1        # list t
 - Be careful with the user's real data on the phone (bookmarks, favorites, status): do not delete them while testing, cancel dialogs.
 - `adb` commands may be blocked by auto-review; retry the same call with `request_smart_mode_approval` (the user authorized device testing).
 
+### Testing foldable / odd screen sizes (Xiaomi 18 Fold)
+
+Real screen data of the Xiaomi 18 Fold (measured on a real unit that is no longer available): `devices/xiaomi-18-fold.md` (outer 425x623 dp `nrml`, inner 608x860 dp `lrg`, density 440). Check the file before asking for the device again.
+`fold.ps1 <profile>` emulates those screens with `wm size` + `wm density` (same dp; px scaled to fit the tablet 1600x2560). Switching profiles while the app runs = fold/unfold event (activity must not restart; check `Main started with mode` in logcat).
+Profiles: `phone`, `mi-outer`, `mi-inner-port`, `mi-inner-land` (tablet), `real-outer` (only on the real Xiaomi). iPhone Duo is iOS: not supported. **Always finish with `fold.ps1 reset`** and check `wm size` shows only `Physical`.
+Screenshots need FLAG_SECURE off: pref `hide_multitasking` = false in `Settings.xml` (default is true). Save the original first (`cmd /c "adb exec-out run-as ... cat shared_prefs/Settings.xml > %TEMP%\Settings.orig.xml"`) and restore it when done. Then `scripts/shot.ps1 -Out %TEMP%\a.png` (picks the display that is ON, scales down; plain `screencap` is corrupt on two-display phones and 2.5 MB PNGs can not be read) and read the PNG.
+Window-size dependent code: `WindowColumns.adjust` (columns follow the window width), `Global.initScreenSize` (refreshed in `GeneralActivity.onConfigurationChanged`). GalleryActivity has no `configChanges` on purpose (restarts on fold).
+
 ### Editing the app database or prefs on the device
 
 `run-as com.maxwai.nclientv3.debug` works (debug build). Binary files must not go through PowerShell `>`:
@@ -69,6 +77,11 @@ Branches: `develop` (working base, does not need to compile on CI) and `main` (p
 3. Commit. Write the message to a file with the Write tool, then `git commit -F "$env:TEMP\msg.txt"` (PowerShell mangles `-F -` here-strings).
 4. `git checkout develop; git merge --no-ff feature/xxx -m "Merge feature/xxx into develop"; git branch -d feature/xxx`.
 5. Push only when the user asks: `git push origin develop`. Publishing: develop -> `main` (confirm first, it triggers CI).
+
+### Release and in-app update
+
+Pushing `main` also runs `.github/workflows/release.yml`: it builds the signed `assemblePost28Release` APK and publishes GitHub release `v<major>.<minor>.<patch>` (read from `app/build.gradle.kts`) with the APK and the last commit subjects as notes. If that tag already exists nothing is published (warning in the log), so **bump `patchVersion` before pushing `main`**. Secrets needed: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`; the same key forever (a different key makes phones refuse the update). The local `keystore.properties` only points to a dummy file: there is no local release key, `assemblePost28Release` fails at signing unless a temporary one is put in (keytool, then restore the file).
+The app (`async/VersionChecker`, checked on each cold start, setting `preference_key_check_update`) reads `api.github.com/repos/lissettecarlr/NClientV_kuon/releases`, takes the newest non-prerelease, compares the number in `tag_name` with its own `versionName`, and downloads the first `.apk` asset (not containing `pre28`) to `<external files>/NClientV3/Update`, then opens the system installer. Tested end to end on the Xiaomi with a local fake release server (`adb reverse`, cleartext, patched URL, not committed).
 
 Untracked `build.log` in the root is scratch, never commit it. Stage with `git add app` (or explicit paths).
 

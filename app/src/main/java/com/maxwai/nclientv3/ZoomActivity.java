@@ -12,7 +12,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -234,13 +233,12 @@ public class ZoomActivity extends GeneralActivity {
         changeLayout(newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE);
     }
 
-    private boolean hardwareKeys() {
-        return ViewConfiguration.get(this).hasPermanentMenuKey();
-    }
-
+    // [FORK] the system bars are already handled by the insets padding set in CrashApplication.
+    // The old extra margin (nav_header_height = 176dp, not the real bar) left a dead strip on the right
+    // in landscape, which is huge on wide foldables.
     private void applyMargin(boolean landscape, View view) {
         ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) view.getLayoutParams();
-        lp.setMargins(0, 0, landscape && !hardwareKeys() ? Global.getNavigationBarHeight(this) : 0, 0);
+        lp.setMargins(0, 0, 0, 0);
         view.setLayoutParams(lp);
     }
 
@@ -277,6 +275,7 @@ public class ZoomActivity extends GeneralActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_zoom, menu);
+        menu.findItem(R.id.share).setVisible(false);// [FORK] removed: share (same as in the gallery page)
         Utility.tintMenu(this, menu);
         return true;
     }

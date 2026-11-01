@@ -60,6 +60,14 @@ public abstract class GeneralActivity extends AppCompatActivity {
         AppLock.guard(this);// [FORK] lock screen also for deep links
     }
 
+    // [FORK] folded / unfolded: the manifest tells the system not to recreate the activity, the cached
+    // screen size (size of the cards) has to be refreshed here
+    @Override
+    public void onConfigurationChanged(@androidx.annotation.NonNull android.content.res.Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Global.initActivity(this);
+    }
+
     // [FORK]
     @Override
     protected void onStart() {

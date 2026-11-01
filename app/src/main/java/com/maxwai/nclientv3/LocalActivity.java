@@ -23,6 +23,7 @@ import com.maxwai.nclientv3.components.activities.BaseActivity;
 import com.maxwai.nclientv3.components.classes.MultichoiceAdapter;
 import com.maxwai.nclientv3.settings.Global;
 import com.maxwai.nclientv3.utility.Utility;
+import com.maxwai.nclientv3.utility.WindowColumns;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -147,6 +148,7 @@ public class LocalActivity extends BaseActivity {
     @Override
     protected void changeLayout(boolean landscape) {
         colCount = (landscape ? getLandscapeColumnCount() : getPortraitColumnCount());
+        colCount = WindowColumns.adjust(this, colCount, landscape);// [FORK] wide foldables, same as BaseActivity
         if (adapter != null) adapter.setColCount(colCount);
         super.changeLayout(landscape);
     }
