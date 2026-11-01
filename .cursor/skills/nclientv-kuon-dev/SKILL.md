@@ -76,7 +76,7 @@ Branches: `develop` (working base, does not need to compile on CI) and `main` (p
 2. Implement, build, test on the phone.
 3. Commit. Write the message to a file with the Write tool, then `git commit -F "$env:TEMP\msg.txt"` (PowerShell mangles `-F -` here-strings).
 4. `git checkout develop; git merge --no-ff feature/xxx -m "Merge feature/xxx into develop"; git branch -d feature/xxx`.
-5. Push only when the user asks: `git push origin develop`. Publishing: develop -> `main` (confirm first, it triggers CI).
+5. Push only when the user asks. Order is always: `git push origin develop` first, then publish by fast-forwarding `main` to the latest `develop` (`git checkout main; git merge --ff-only develop; git push origin main`), which triggers the release workflow. Never push `main` before `develop`. Bump `patchVersion` (or the version) on `develop` before publishing.
 
 ### Release and in-app update
 
