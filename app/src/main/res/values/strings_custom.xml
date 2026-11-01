@@ -19,4 +19,6 @@
     <string name="bookmark_located_missing">The bookmarked gallery is gone, showing where it used to be. Everything above is new.</string>
     <string name="title_min_pages">Minimum page count</string>
     <string name="summary_min_pages">Hide galleries with fewer pages than this value in lists and searches (0 = disabled)</string>
+    <string name="export_in_progress">Exporting, this takes a few seconds. Stay in the app until it says it is finished.</string>
+    <string name="import_backup_damaged">This backup file is incomplete or damaged (the export was probably interrupted). Nothing was imported. Export again and wait until it is finished.</string>
 </resources>
