@@ -30,7 +30,9 @@
         <Preference
             android:key="@string/preference_key_api_key"
             android:title="@string/setting_api_key_title"
-            app:iconSpaceReserved="false" />
+            app:iconSpaceReserved="false"
+            app:isPreferenceVisible="false" /><!-- [FORK] no login needed, hidden like the site mirror -->
+
         <SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="@string/preference_key_fake_icon"
