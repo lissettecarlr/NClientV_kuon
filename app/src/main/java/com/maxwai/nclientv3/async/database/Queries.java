@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.maxwai.nclientv3.api.BookmarkSeeker;
+import com.maxwai.nclientv3.api.BookmarkMarker;
 import com.maxwai.nclientv3.api.InspectorV3;
 import com.maxwai.nclientv3.api.SimpleGallery;
 import com.maxwai.nclientv3.api.components.Gallery;
@@ -696,30 +696,63 @@ public class Queries {
         static final String PAGE = "page";
         static final String TYPE = "type";
         static final String TAG_ID = "tagId";
-        static final String ANCHOR = "anchor";// [FORK] id of the first gallery of the bookmarked page
+        // [FORK] the bookmarked gallery, the 2 galleries after it, and its title
+        static final String ANCHOR = "anchor";
+        static final String ANCHOR2 = "anchor2";
+        static final String ANCHOR3 = "anchor3";
+        static final String TITLE = "title";
         static final String CREATE_TABLE = "CREATE TABLE IF NOT EXISTS `Bookmark`(" +
             "`url` TEXT NOT NULL UNIQUE," +
             "`page` INT NOT NULL," +
             "`type` INT NOT NULL," +
             "`tagId` INT NOT NULL," +
-            "`anchor` INT NOT NULL DEFAULT 0" +// [FORK]
+            "`anchor` INT NOT NULL DEFAULT 0," +// [FORK]
+            "`anchor2` INT NOT NULL DEFAULT 0," +// [FORK]
+            "`anchor3` INT NOT NULL DEFAULT 0," +// [FORK]
+            "`title` TEXT NOT NULL DEFAULT ''" +// [FORK]
             ");";
 
         public static void deleteBookmark(String url) {
             LogUtility.d("Deleted: " + db.delete(TABLE_NAME, URL + "=?", new String[]{url}));
         }
 
-        public static void addBookmark(InspectorV3 inspector) {
+        // [FORK] bookmark of one gallery: url and page are given by the caller, see BookmarkMarker
+        public static void addBookmark(InspectorV3 inspector, String url, int page, BookmarkMarker.Book book) {
             Tag tag = inspector.getTag();
-            ContentValues values = new ContentValues(4);
-            values.put(URL, inspector.getUrl());
-            values.put(PAGE, inspector.getPage());
+            ContentValues values = new ContentValues(8);
+            values.put(URL, url);
+            values.put(PAGE, page);
             values.put(TYPE, inspector.getRequestType().ordinal());
             values.put(TAG_ID, tag == null ? 0 : tag.getId());
-            values.put(ANCHOR, BookmarkSeeker.firstGalleryId(inspector));// [FORK]
-            LogUtility.d("ADDED: " + inspector.getUrl());
-            // [FORK] REPLACE instead of IGNORE: bookmarking the same page again moves the anchor
+            values.put(ANCHOR, book.ids[0]);
+            values.put(ANCHOR2, book.ids[1]);
+            values.put(ANCHOR3, book.ids[2]);
+            values.put(TITLE, book.title);
+            LogUtility.d("ADDED: " + url);
+            // [FORK] REPLACE instead of IGNORE: bookmarking another gallery of the same list moves the bookmark
             db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        }
+
+        /**
+         * [FORK] only bookmarks of a gallery (with a title) count, the old page bookmarks do not
+         *
+         * @return id of the gallery bookmarked in the list <code>url</code>, 0 if none
+         */
+        public static int getAnchor(String url) {
+            try (Cursor cursor = db.query(TABLE_NAME, new String[]{ANCHOR}, URL + "=? AND " + TITLE + "<>''",
+                new String[]{url}, null, null, null)) {
+                return cursor.moveToFirst() ? cursor.getInt(0) : 0;
+            }
+        }
+
+        /**
+         * [FORK] true if a bookmark of a gallery (with a title) points to the gallery <code>id</code>
+         */
+        public static boolean isAnchor(int id) {
+            try (Cursor cursor = db.query(TABLE_NAME, new String[]{ANCHOR}, ANCHOR + "=? AND " + TITLE + "<>''",
+                new String[]{String.valueOf(id)}, null, null, null)) {
+                return cursor.moveToFirst();
+            }
         }
 
         public static List<Bookmark> getBookmarks() {
@@ -735,7 +768,10 @@ public class Queries {
                             cursor.getInt(cursor.getColumnIndex(PAGE)),
                             ApiRequestType.values[cursor.getInt(cursor.getColumnIndex(TYPE))],
                             cursor.getInt(cursor.getColumnIndex(TAG_ID)),
-                            cursor.getInt(cursor.getColumnIndex(ANCHOR))// [FORK]
+                            cursor.getInt(cursor.getColumnIndex(ANCHOR)),// [FORK]
+                            cursor.getInt(cursor.getColumnIndex(ANCHOR2)),// [FORK]
+                            cursor.getInt(cursor.getColumnIndex(ANCHOR3)),// [FORK]
+                            cursor.getString(cursor.getColumnIndex(TITLE))// [FORK]
                         );
                         bookmarks.add(b);
                     } while (cursor.moveToNext());

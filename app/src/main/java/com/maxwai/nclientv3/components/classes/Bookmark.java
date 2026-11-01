@@ -25,13 +25,21 @@ public class Bookmark {
      * [FORK] id of the first gallery of the bookmarked page, 0 if unknown
      */
     public final int anchor;
+    /**
+     * [FORK] ids of the two galleries after the anchor (0 if none), title of the anchor gallery
+     */
+    public final int anchor2, anchor3;
+    public final String title;
     private final ApiRequestType requestType;
     private final Tag tagVal;
     private final Uri uri;
 
-    public Bookmark(String url, int page, ApiRequestType requestType, int tag, int anchor) {
+    public Bookmark(String url, int page, ApiRequestType requestType, int tag, int anchor, int anchor2, int anchor3, String title) {
         Tag tagVal1;
         this.anchor = anchor;
+        this.anchor2 = anchor2;
+        this.anchor3 = anchor3;
+        this.title = title == null ? "" : title;
         this.url = url;
         this.page = page;
         this.requestType = requestType;
@@ -68,6 +76,13 @@ public class Bookmark {
      */
     public boolean canSeek() {
         return anchor > 0 && BookmarkSeeker.isSeekable(requestType, url);
+    }
+
+    /**
+     * [FORK] the bookmarked gallery followed by the galleries after it
+     */
+    public int[] anchorIds() {
+        return new int[]{anchor, anchor2, anchor3};
     }
 
     public void deleteBookmark() {

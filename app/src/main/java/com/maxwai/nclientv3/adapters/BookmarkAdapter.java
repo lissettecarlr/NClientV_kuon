@@ -20,6 +20,7 @@ import com.maxwai.nclientv3.api.BookmarkSeeker;
 import com.maxwai.nclientv3.api.InspectorV3;
 import com.maxwai.nclientv3.async.database.Queries;
 import com.maxwai.nclientv3.components.classes.Bookmark;
+import com.maxwai.nclientv3.components.status.BookmarkStatus;
 import com.maxwai.nclientv3.utility.IntentUtility;
 
 import java.util.List;
@@ -49,8 +50,14 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.ViewHo
         final int position = holder.getBindingAdapterPosition();
         Bookmark bookmark = bookmarks.get(position);
 
-        holder.queryText.setText(bookmark.toString());
-        holder.pageLabel.setText(bookmarkActivity.getString(R.string.bookmark_page_format, bookmark.page));
+        // [FORK] a bookmark points to a gallery: show its title instead of the page
+        if (bookmark.title.isEmpty()) {
+            holder.queryText.setText(bookmark.toString());
+            holder.pageLabel.setText(bookmarkActivity.getString(R.string.bookmark_page_format, bookmark.page));
+        } else {
+            holder.queryText.setText(bookmark + "\n" + bookmark.title);
+            holder.pageLabel.setText("");
+        }
 
         holder.rootLayout.setOnClickListener(v -> loadBookmark(bookmark));
         // [FORK] the small X was hard to hit: long press the bookmark to delete it
@@ -94,7 +101,11 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.ViewHo
         InspectorV3 inspector = bookmark.createInspector(bookmarkActivity, null);
         if (page != bookmark.page) inspector.setPage(page);// [FORK]
         i.putExtra(bookmarkActivity.getPackageName() + ".INSPECTOR", inspector);
-        if (bookmark.canSeek()) i.putExtra(bookmarkActivity.getPackageName() + ".ANCHOR", bookmark.anchor);// [FORK]
+        if (bookmark.anchor > 0) {// [FORK] scroll to the bookmarked gallery
+            i.putExtra(bookmarkActivity.getPackageName() + ".ANCHORS", bookmark.anchorIds());
+            i.putExtra(bookmarkActivity.getPackageName() + ".ANCHOR_ORDERED", bookmark.canSeek());
+            i.putExtra(bookmarkActivity.getPackageName() + ".ANCHOR_TITLE", bookmark.title);
+        }
         IntentUtility.startAnotherActivity(bookmarkActivity, i);
     }
 
@@ -107,6 +118,8 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.ViewHo
         if (position >= bookmarks.size()) return;
         Bookmark bookmark = bookmarks.get(position);
         bookmark.deleteBookmark();
+        // [FORK] a bookmark of a gallery colors it, the old page bookmarks (no title) never did
+        if (!bookmark.title.isEmpty()) BookmarkStatus.clear(bookmarkActivity, bookmark.anchor);
         bookmarks.remove(bookmark);
         bookmarkActivity.runOnUiThread(() -> notifyItemRemoved(position));
     }
