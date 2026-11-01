@@ -20,6 +20,7 @@ import com.maxwai.nclientv3.api.BookmarkSeeker;
 import com.maxwai.nclientv3.api.InspectorV3;
 import com.maxwai.nclientv3.async.database.Queries;
 import com.maxwai.nclientv3.components.classes.Bookmark;
+import com.maxwai.nclientv3.components.status.BookmarkStatus;
 import com.maxwai.nclientv3.utility.IntentUtility;
 
 import java.util.List;
@@ -117,6 +118,8 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.ViewHo
         if (position >= bookmarks.size()) return;
         Bookmark bookmark = bookmarks.get(position);
         bookmark.deleteBookmark();
+        // [FORK] a bookmark of a gallery colors it, the old page bookmarks (no title) never did
+        if (!bookmark.title.isEmpty()) BookmarkStatus.clear(bookmarkActivity, bookmark.anchor);
         bookmarks.remove(bookmark);
         bookmarkActivity.runOnUiThread(() -> notifyItemRemoved(position));
     }

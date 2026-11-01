@@ -733,6 +733,28 @@ public class Queries {
             db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         }
 
+        /**
+         * [FORK] only bookmarks of a gallery (with a title) count, the old page bookmarks do not
+         *
+         * @return id of the gallery bookmarked in the list <code>url</code>, 0 if none
+         */
+        public static int getAnchor(String url) {
+            try (Cursor cursor = db.query(TABLE_NAME, new String[]{ANCHOR}, URL + "=? AND " + TITLE + "<>''",
+                new String[]{url}, null, null, null)) {
+                return cursor.moveToFirst() ? cursor.getInt(0) : 0;
+            }
+        }
+
+        /**
+         * [FORK] true if a bookmark of a gallery (with a title) points to the gallery <code>id</code>
+         */
+        public static boolean isAnchor(int id) {
+            try (Cursor cursor = db.query(TABLE_NAME, new String[]{ANCHOR}, ANCHOR + "=? AND " + TITLE + "<>''",
+                new String[]{String.valueOf(id)}, null, null, null)) {
+                return cursor.moveToFirst();
+            }
+        }
+
         public static List<Bookmark> getBookmarks() {
             String query = "SELECT * FROM " + TABLE_NAME;
             try (Cursor cursor = db.rawQuery(query, null)) {

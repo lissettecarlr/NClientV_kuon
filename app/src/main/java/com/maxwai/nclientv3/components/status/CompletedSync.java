@@ -95,7 +95,7 @@ public final class CompletedSync {
         }
     }
 
-    private static void refreshLists(int id) {
+    static void refreshLists(int id) {
         new Handler(Looper.getMainLooper()).post(() -> {
             synchronized (LISTS) {
                 for (Map.Entry<RecyclerView.Adapter<?>, SparseIntArray> e : LISTS.entrySet()) {

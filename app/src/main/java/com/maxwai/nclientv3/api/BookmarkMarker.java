@@ -11,6 +11,7 @@ import com.maxwai.nclientv3.R;
 import com.maxwai.nclientv3.api.components.GenericGallery;
 import com.maxwai.nclientv3.api.enums.ApiRequestType;
 import com.maxwai.nclientv3.async.database.Queries;
+import com.maxwai.nclientv3.components.status.BookmarkStatus;
 import com.maxwai.nclientv3.settings.Global;
 
 import java.util.List;
@@ -105,7 +106,12 @@ public final class BookmarkMarker {
         // With infinite scroll the list holds several pages, so the page of the gallery is unknown.
         // It is only a hint: BookmarkSeeker searches in both directions
         int page = Global.isInfiniteScrollMain() ? 1 : inspector.getPage();
-        Queries.BookmarkTable.addBookmark(inspector, listUrl(inspector.getUrl()), page, book);
+        String url = listUrl(inspector.getUrl());
+        int previous = Queries.BookmarkTable.getAnchor(url);
+        Queries.BookmarkTable.addBookmark(inspector, url, page, book);
+        // The bookmarked gallery is blue ("Reading"), the previous one is not any more
+        if (previous > 0 && previous != book.ids[0]) BookmarkStatus.clear(activity, previous);
+        BookmarkStatus.mark(activity, book.ids[0]);
         Toast.makeText(activity, activity.getString(R.string.bookmark_saved, book.title), Toast.LENGTH_SHORT).show();
     }
 
