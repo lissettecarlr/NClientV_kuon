@@ -60,6 +60,14 @@ public class VersionChecker {
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                if (!response.isSuccessful()) {// [FORK] e.g. 403 rate limit: it is not "no update"
+                    response.close();
+                    context.runOnUiThread(() -> {
+                        if (!silent)
+                            Toast.makeText(context, R.string.error_retrieving, Toast.LENGTH_SHORT).show();
+                    });
+                    return;
+                }
                 GitHubRelease release;
                 try (JsonReader jr = new JsonReader(response.body().charStream())) {
                     release = parseVersionJson(jr, withPrerelease);
@@ -114,7 +122,10 @@ public class VersionChecker {
                     release.versionCode = jr.nextString();
                     break;
                 case "body":
-                    release.body = jr.nextString();
+                    // [FORK] GitHub sends null when the release has no description: nextString() threw
+                    // and the whole release was ignored ("no update found")
+                    if (jr.peek() == JsonToken.NULL) jr.nextNull();
+                    else release.body = jr.nextString();
                     break;
                 case "prerelease":
                     release.beta = jr.nextBoolean();
@@ -130,8 +141,9 @@ public class VersionChecker {
                         }
                         release.downloadUrl = getDownloadUrl(jr);
                         //noinspection ConstantValue
-                        if ((BuildConfig.FLAVOR.equals("pre28") && !release.downloadUrl.contains("pre28")) ||
-                            (BuildConfig.FLAVOR.equals("post28") && release.downloadUrl.contains("pre28")))
+                        if (release.downloadUrl != null &&// [FORK] not an apk -> keep looking at the next asset
+                            ((BuildConfig.FLAVOR.equals("pre28") && !release.downloadUrl.contains("pre28")) ||
+                                (BuildConfig.FLAVOR.equals("post28") && release.downloadUrl.contains("pre28"))))
                             release.downloadUrl = null;
                     }
                     jr.endArray();
@@ -148,21 +160,26 @@ public class VersionChecker {
 
     private static String getDownloadUrl(JsonReader jr) throws IOException {
         String url = null;
+        String name = null;
         jr.beginObject();
         while (jr.peek() != JsonToken.END_OBJECT) {
-            if ("browser_download_url".equals(jr.nextName()))
+            String key = jr.nextName();
+            if ("browser_download_url".equals(key))
                 url = jr.nextString();
+            else if ("name".equals(key) && jr.peek() == JsonToken.STRING)
+                name = jr.nextString();
             else jr.skipValue();
         }
         jr.endObject();
-        return url;
+        // [FORK] only apk files: a release may also have a mapping file, checksums, ...
+        return name != null && name.endsWith(".apk") ? url : null;
     }
 
     private void createDialog(GitHubRelease release) {
         String finalBody = release.body;
         String latestVersion = release.versionCode;
         boolean beta = release.beta;
-        if (finalBody == null) return;
+        if (finalBody == null) finalBody = "";// [FORK] a release without notes is still an update
         finalBody = finalBody
             .replace("\r\n", "\n")//Remove ugly newline
             .replace("NClientV3 " + latestVersion, "")//remove version header
@@ -210,21 +227,34 @@ public class VersionChecker {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 context.getSharedPreferences("Settings", 0).edit().putBoolean("downloaded", false).apply();
+                if (!response.isSuccessful()) {// [FORK] never save an error page as an apk
+                    response.close();
+                    context.runOnUiThread(() -> Toast.makeText(context, R.string.download_update_failed, Toast.LENGTH_LONG).show());
+                    return;
+                }
                 if (Global.UPDATEFOLDER == null) {
                     Global.initStorage(context);
                 }
                 //noinspection ResultOfMethodCallIgnored
                 Global.UPDATEFOLDER.mkdirs();
-                //noinspection ResultOfMethodCallIgnored
-                f.createNewFile();
-                try (FileOutputStream stream = new FileOutputStream(f);
-                     InputStream stream1 = response.body().byteStream()) {
-                    int read;
-                    byte[] bytes = new byte[1024];
-                    while ((read = stream1.read(bytes)) != -1) {
-                        stream.write(bytes, 0, read);
+                try {// [FORK] a failure here (no space, connection lost) was swallowed silently
+                    //noinspection ResultOfMethodCallIgnored
+                    f.createNewFile();
+                    try (FileOutputStream stream = new FileOutputStream(f);
+                         InputStream stream1 = response.body().byteStream()) {
+                        int read;
+                        byte[] bytes = new byte[1024];
+                        while ((read = stream1.read(bytes)) != -1) {
+                            stream.write(bytes, 0, read);
+                        }
+                        stream.flush();
                     }
-                    stream.flush();
+                } catch (IOException e) {
+                    LogUtility.e(e.getLocalizedMessage(), e);
+                    //noinspection ResultOfMethodCallIgnored
+                    f.delete();
+                    context.runOnUiThread(() -> Toast.makeText(context, R.string.download_update_failed, Toast.LENGTH_LONG).show());
+                    return;
                 }
                 context.getSharedPreferences("Settings", 0).edit().putBoolean("downloaded", true).apply();
                 installApp(f);
