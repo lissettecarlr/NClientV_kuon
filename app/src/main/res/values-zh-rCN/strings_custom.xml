@@ -9,6 +9,7 @@
     <string name="bookmark_seeking">正在定位上次看到的位置…</string>
     <string name="bookmark_mark_gallery">设为书签</string>
     <string name="bookmark_toggle_titles">显示 / 隐藏标题</string>
+    <string name="bookmark_pick_hint">点选要设为书签的那本书</string>
     <string name="bookmark_saved">已设为书签：%1$s</string>
     <string name="bookmark_located">书签：%1$s，它上面的都是新书</string>
     <string name="bookmark_located_missing">书签的书已下架，已定位到它原来的位置，上面的都是新书</string>

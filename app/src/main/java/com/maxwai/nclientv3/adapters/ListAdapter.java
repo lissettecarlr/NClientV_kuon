@@ -109,6 +109,10 @@ public class ListAdapter extends RecyclerView.Adapter<GenericAdapter.ViewHolder>
               /*Intent intent = new Intent(context, GalleryActivity.class);
               intent.putExtra(context.getPackageName() + ".ID", ent.getId());
               context.startActivity(intent);*/
+            // [FORK] picking the gallery to bookmark: the tap does not open it
+            if (context instanceof MainActivity
+                && ((MainActivity) context).onGalleryPicked(holder.getBindingAdapterPosition()))
+                return;
             if (context instanceof MainActivity)
                 ((MainActivity) context).setIdOpenedGallery(ent.getId());
             downloadGallery(ent);

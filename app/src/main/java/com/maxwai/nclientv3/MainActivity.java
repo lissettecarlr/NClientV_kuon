@@ -37,6 +37,7 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 import com.maxwai.nclientv3.adapters.ListAdapter;
 import com.maxwai.nclientv3.api.BookmarkMarker;
+import com.maxwai.nclientv3.api.BookmarkPicker;
 import com.maxwai.nclientv3.api.InspectorV3;
 import com.maxwai.nclientv3.api.components.Gallery;
 import com.maxwai.nclientv3.api.components.GenericGallery;
@@ -109,6 +110,7 @@ public class MainActivity extends BaseActivity
     private int[] bookmarkAnchors = null;
     private boolean bookmarkOrdered = false;
     private String bookmarkTitle = "";
+    private final BookmarkPicker bookmarkPicker = new BookmarkPicker();// [FORK]
     private boolean inspecting = false, filteringTag = false;
     private SortType temporaryType;
     private Snackbar snackbar = null;
@@ -174,7 +176,9 @@ public class MainActivity extends BaseActivity
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                if (drawerLayout.isDrawerOpen(GravityCompat.START))
+                if (bookmarkPicker.isActive())// [FORK]
+                    bookmarkPicker.cancel();
+                else if (drawerLayout.isDrawerOpen(GravityCompat.START))
                     drawerLayout.closeDrawer(GravityCompat.START);
                 else {
                     setEnabled(false);
@@ -354,6 +358,15 @@ public class MainActivity extends BaseActivity
         if (landing == null) return -1;
         BookmarkMarker.announce(this, bookmarkTitle, landing);
         return landing.position;
+    }
+
+    /**
+     * [FORK] tap on a gallery of the list
+     *
+     * @return true if the tap was used to pick the bookmark (the gallery must not be opened)
+     */
+    public boolean onGalleryPicked(int position) {
+        return bookmarkPicker.pick(this, inspector, adapter.getDataset(), position);
     }
 
     /**
@@ -640,9 +653,8 @@ public class MainActivity extends BaseActivity
             if (inspector.getGalleries() != null)
                 showDialogDownloadAll();
         } else if (item.getItemId() == R.id.add_bookmark) {
-            // [FORK] bookmarks the first gallery of the list
-            BookmarkMarker.Book book = BookmarkMarker.bookAt(adapter.getDataset(), 0);
-            if (book != null) BookmarkMarker.save(this, inspector, book);
+            // [FORK] the user taps the gallery to bookmark, see onGalleryPicked
+            bookmarkPicker.toggle(masterLayout, inspector);
         } else if (item.getItemId() == R.id.tag_manager) {
             TagStatus ts = TagV2.updateStatus(inspector.getTag());
             updateTagStatus(item, ts);

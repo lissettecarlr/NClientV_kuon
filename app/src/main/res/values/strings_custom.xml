@@ -13,6 +13,7 @@
     <string name="bookmark_seeking">Looking for where you left off…</string>
     <string name="bookmark_mark_gallery">Bookmark this gallery</string>
     <string name="bookmark_toggle_titles">Show / hide titles</string>
+    <string name="bookmark_pick_hint">Tap the gallery you want to bookmark</string>
     <string name="bookmark_saved">Bookmarked: %1$s</string>
     <string name="bookmark_located">Bookmark: %1$s. Everything above it is new.</string>
     <string name="bookmark_located_missing">The bookmarked gallery is gone, showing where it used to be. Everything above is new.</string>
