@@ -614,11 +614,6 @@ public class MainActivity extends BaseActivity
                 i = new Intent(this, SearchActivity.class);
                 startActivity(i);
             }
-        } else if (item.getItemId() == R.id.open_browser) {
-            if (inspector != null) {
-                i = new Intent(Intent.ACTION_VIEW, Uri.parse(inspector.getUrl()));
-                startActivity(i);
-            }
         } else if (item.getItemId() == R.id.random_favorite) {
             inspector = InspectorV3.randomInspector(this, startGallery, true);
             inspector.start();
