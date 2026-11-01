@@ -9,6 +9,8 @@ import android.util.JsonReader;
 
 import androidx.annotation.NonNull;
 
+import com.maxwai.nclientv3.components.status.FixedStatus;
+import com.maxwai.nclientv3.components.status.StatusManager;
 import com.maxwai.nclientv3.settings.Database;
 import com.maxwai.nclientv3.utility.LogUtility;
 
@@ -75,10 +77,12 @@ class Importer {
         db.beginTransaction();
         try {// [FORK] the transaction was never ended when the file was bad: rolled back now
             importTables(db, stream);
+            FixedStatus.migrate(db);// [FORK] an old backup has the old "Completed"/"Reading" statuses
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
         }
+        StatusManager.reload();// [FORK] the statuses in memory are the ones from before the import
     }
 
     private static void importTables(SQLiteDatabase db, InputStream stream) throws IOException {

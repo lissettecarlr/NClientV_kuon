@@ -26,14 +26,32 @@ public class StatusManager {
         return status;
     }
 
+    /**
+     * [FORK] Forget the statuses in memory and load them again from the database
+     */
+    public static void reload() {
+        statusMap.clear();
+        Queries.StatusTable.initStatuses();
+    }
+
+    /**
+     * [FORK] the fixed statuses first, then alphabetical
+     */
+    private static int compare(String n1, String n2) {
+        boolean f1 = FixedStatus.isFixed(n1), f2 = FixedStatus.isFixed(n2);
+        if (f1 != f2) return f1 ? -1 : 1;
+        return n1.compareToIgnoreCase(n2);
+    }
+
     public static void remove(Status status) {
+        if (FixedStatus.isFixed(status.name)) return;// [FORK]
         Queries.StatusTable.remove(status.name);
         statusMap.remove(status.name);
     }
 
     public static List<String> getNames() {
         List<String> st = new ArrayList<>(statusMap.keySet());
-        st.sort(String::compareToIgnoreCase);
+        st.sort(StatusManager::compare);// [FORK]
         st.remove(DEFAULT_STATUS);
         //st.add(0,DEFAULT_STATUS);
         return st;
@@ -41,7 +59,7 @@ public class StatusManager {
 
     public static List<Status> toList() {
         ArrayList<Status> statuses = new ArrayList<>(statusMap.values());
-        statuses.sort((o1, o2) -> o1.name.compareToIgnoreCase(o2.name));
+        statuses.sort((o1, o2) -> compare(o1.name, o2.name));// [FORK]
         statuses.remove(getByName(DEFAULT_STATUS));
         return statuses;
     }
@@ -49,6 +67,7 @@ public class StatusManager {
     public static Status updateStatus(@Nullable Status oldStatus, String newName, int newColor) {
         if (oldStatus == null)
             return add(newName, newColor);
+        if (FixedStatus.isFixed(oldStatus.name)) return oldStatus;// [FORK]
         Status newStatus = new Status(newColor, newName);
         Queries.StatusTable.update(oldStatus, newStatus);
         statusMap.remove(oldStatus.name);

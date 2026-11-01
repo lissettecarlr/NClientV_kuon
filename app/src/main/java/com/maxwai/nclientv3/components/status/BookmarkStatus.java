@@ -10,44 +10,33 @@ import androidx.annotation.NonNull;
 import com.maxwai.nclientv3.R;
 import com.maxwai.nclientv3.async.database.Queries;
 import com.maxwai.nclientv3.settings.Database;
+import com.maxwai.nclientv3.settings.Global;
 
 import java.util.Date;
 
 /**
- * Custom (fork only) feature: the bookmarked gallery gets the "Reading" status (blue by default),
+ * Custom (fork only) feature: the bookmarked gallery gets the fixed "Bookmark" status (blue),
  * so it can be seen at a glance in the lists.
  * <p>
- * The color follows the bookmark: moving or deleting the bookmark takes the status away again,
- * but only if the gallery still is "Reading" (the user may have changed it since).
+ * The color follows the bookmark: moving or deleting the bookmark takes the status away again
+ * ("Downloaded" if the gallery is downloaded), but only if the gallery still is "Bookmark"
+ * (the user may have changed it since).
  */
 public final class BookmarkStatus {
     private BookmarkStatus() {
     }
 
     /**
-     * The status names are stored in the database in the language that was active when it was
-     * created, so accept the usual ones.
-     */
-    private static String[] candidateNames(Context context) {
-        return new String[]{context.getString(R.string.default_status_1), "Reading", "正在阅读"};
-    }
-
-    /**
-     * @return the "Reading" status, created if the user deleted it
+     * @return the fixed "Bookmark" status (see {@link FixedStatus}), created if missing
      */
     @NonNull
     private static Status getReadingStatus(@NonNull Context context) {
-        for (String name : candidateNames(context)) {
-            Status status = StatusManager.getByName(name);
-            if (status != null) return status;
-        }
-        return StatusManager.add(context.getString(R.string.default_status_1), Color.BLUE);
+        Status status = StatusManager.getByName(FixedStatus.BOOKMARK);
+        return status != null ? status : StatusManager.add(FixedStatus.BOOKMARK, Color.BLUE);
     }
 
     private static boolean isReading(@NonNull Context context, @NonNull Status status) {
-        for (String name : candidateNames(context))
-            if (name.equals(status.name)) return true;
-        return false;
+        return FixedStatus.BOOKMARK.equals(status.name);
     }
 
     /**
@@ -76,7 +65,12 @@ public final class BookmarkStatus {
         if (Database.getDatabase() == null || id < 1) return;
         if (Queries.BookmarkTable.isAnchor(id)) return;
         if (!isReading(context, Queries.StatusMangaTable.getStatus(id))) return;
-        Queries.StatusMangaTable.remove(id);
+        // a gallery that is downloaded goes back to "Downloaded" instead of losing its status
+        if (Global.hasStoragePermission(context) && Global.findGalleryFolder(context, id) != null) {
+            CompletedSync.markCompleted(context, id);
+        } else {
+            Queries.StatusMangaTable.remove(id);
+        }
         CompletedSync.refreshLists(id);
     }
 }
