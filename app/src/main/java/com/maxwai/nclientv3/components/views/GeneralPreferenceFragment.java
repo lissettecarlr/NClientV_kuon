@@ -45,6 +45,7 @@ import com.maxwai.nclientv3.components.launcher.LauncherReal;
 import com.maxwai.nclientv3.settings.AuthStore;
 import com.maxwai.nclientv3.settings.Global;
 import com.maxwai.nclientv3.settings.Login;
+import com.maxwai.nclientv3.settings.NotificationSettings;
 import com.maxwai.nclientv3.utility.LogUtility;
 import com.maxwai.nclientv3.utility.Utility;
 
@@ -306,6 +307,14 @@ public class GeneralPreferenceFragment extends PreferenceFragmentCompat {
                 hasCredentials.setEnabled(false);
                 hasCredentials.setSummary(R.string.setting_device_credentials_low_sdk);
             }
+        }
+
+        {// [FORK] turning the notifications off also removes the ones that are shown
+            Preference notifications = Objects.requireNonNull(findPreference(getString(R.string.preference_key_notifications_enabled)));
+            notifications.setOnPreferenceChangeListener((preference, newValue) -> {
+                if (newValue.equals(Boolean.FALSE)) NotificationSettings.cancelAll();
+                return true;
+            });
         }
 
         {

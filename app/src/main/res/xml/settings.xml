@@ -33,12 +33,6 @@
             app:iconSpaceReserved="false"
             app:isPreferenceVisible="false" /><!-- [FORK] no login needed, hidden like the site mirror -->
 
-        <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="@string/preference_key_fake_icon"
-            android:summary="@string/summary_disguise_app"
-            android:title="@string/disguise_app_in_drawer"
-            app:iconSpaceReserved="false" />
         <Preference
             android:key="@string/preference_key_status_screen"
             android:title="@string/manage_statuses"
@@ -51,14 +45,28 @@
             android:summary="@string/title_type_summary"
             android:title="@string/change_title_type"
             app:iconSpaceReserved="false" />
+        <ListPreference
+            android:key="@string/preference_key_save_path"
+            android:title="@string/folder_location"
+            app:iconSpaceReserved="false" />
+        <SeekBarPreference
+            android:defaultValue="25"
+            android:dependency="@string/preference_key_notifications_enabled"
+            android:key="@string/preference_key_maximum_notification"
+            android:max="50"
+            android:title="@string/maximum_notification_count"
+            app:iconSpaceReserved="false"
+            app:showSeekBarValue="true" />
+    </PreferenceCategory>
+
+    <!-- [FORK] privacy category -->
+    <PreferenceCategory
+        android:title="@string/privacy_settings"
+        app:iconSpaceReserved="false">
         <SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="@string/preference_key_hide_multitasking"
             android:title="@string/title_hide_multitasking"
-            app:iconSpaceReserved="false" />
-        <ListPreference
-            android:key="@string/preference_key_save_path"
-            android:title="@string/folder_location"
             app:iconSpaceReserved="false" />
         <SwitchPreferenceCompat
             android:defaultValue="false"
@@ -66,13 +74,18 @@
             android:summary="@string/setting_device_credentials"
             android:title="@string/use_device_credentials"
             app:iconSpaceReserved="false" />
-        <SeekBarPreference
-            android:defaultValue="25"
-            android:key="@string/preference_key_maximum_notification"
-            android:max="50"
-            android:title="@string/maximum_notification_count"
-            app:iconSpaceReserved="false"
-            app:showSeekBarValue="true" />
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="@string/preference_key_fake_icon"
+            android:summary="@string/summary_disguise_app"
+            android:title="@string/disguise_app_in_drawer"
+            app:iconSpaceReserved="false" />
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="@string/preference_key_notifications_enabled"
+            android:summary="@string/summary_notifications_enabled"
+            android:title="@string/title_notifications_enabled"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory
