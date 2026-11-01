@@ -29,12 +29,14 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.os.LocaleListCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 import com.maxwai.nclientv3.adapters.ListAdapter;
+import com.maxwai.nclientv3.api.BookmarkMarker;
 import com.maxwai.nclientv3.api.InspectorV3;
 import com.maxwai.nclientv3.api.components.Gallery;
 import com.maxwai.nclientv3.api.components.GenericGallery;
@@ -103,7 +105,10 @@ public class MainActivity extends BaseActivity
     private NavigationView navigationView;
     private ModeType modeType = ModeType.UNKNOWN;
     private int idOpenedGallery = -1;//Position in the recycler of the opened gallery
-    private int bookmarkAnchor = 0;// [FORK] gallery id to scroll to after opening a bookmark
+    // [FORK] bookmarked gallery (+ followers) to scroll to after opening a bookmark
+    private int[] bookmarkAnchors = null;
+    private boolean bookmarkOrdered = false;
+    private String bookmarkTitle = "";
     private boolean inspecting = false, filteringTag = false;
     private SortType temporaryType;
     private Snackbar snackbar = null;
@@ -114,11 +119,17 @@ public class MainActivity extends BaseActivity
         public void onSuccess(List<GenericGallery> galleries) {
             super.onSuccess(galleries);
             adapter.restartDataset(galleries);
+            // [FORK] the page switcher reloads the page when it learns the page number: the
+            // first load of a bookmark must not use up the anchor, the reload will scroll to it
+            boolean reloadFollows = pageSwitcher.getActualPage() != inspector.getPage();
             showPageSwitcher(inspector.getPage(), inspector.getPageCount());
             // [FORK] opened from a bookmark: show the anchor gallery (newer ones are just above it)
-            int anchorPos = findAnchor(galleries);
+            int anchorPos = reloadFollows ? -1 : findAnchor(galleries);
             runOnUiThread(() -> {
-                if (anchorPos > 0) recycler.scrollToPosition(anchorPos);
+                // [FORK] scrollToPosition does nothing for a gallery that is already on screen
+                if (anchorPos > 0 && recycler.getLayoutManager() instanceof LinearLayoutManager)
+                    ((LinearLayoutManager) recycler.getLayoutManager()).scrollToPositionWithOffset(anchorPos, 0);
+                else if (anchorPos > 0) recycler.scrollToPosition(anchorPos);
                 else recycler.smoothScrollToPosition(0);
             });
         }
@@ -337,17 +348,25 @@ public class MainActivity extends BaseActivity
      * @return position of the anchor gallery in <code>galleries</code>, -1 if none
      */
     private int findAnchor(List<GenericGallery> galleries) {
-        int anchor = bookmarkAnchor;
-        bookmarkAnchor = 0;
-        if (anchor <= 0 || galleries == null) return -1;
-        for (int i = 0; i < galleries.size(); i++) {
-            if (galleries.get(i).getId() == anchor) return i;
-        }
-        return -1;
+        int[] anchors = bookmarkAnchors;
+        bookmarkAnchors = null;
+        BookmarkMarker.Landing landing = BookmarkMarker.locate(galleries, anchors, bookmarkOrdered);
+        if (landing == null) return -1;
+        BookmarkMarker.announce(this, bookmarkTitle, landing);
+        return landing.position;
+    }
+
+    /**
+     * [FORK] long press on a gallery of the list
+     */
+    public void onGalleryLongPress(int position, Runnable toggleTitles) {
+        BookmarkMarker.showMenu(this, inspector, adapter.getDataset(), position, toggleTitles);
     }
 
     private void useBookmarkMode(Intent intent, String packageName) {
-        bookmarkAnchor = intent.getIntExtra(packageName + ".ANCHOR", 0);// [FORK]
+        bookmarkAnchors = intent.getIntArrayExtra(packageName + ".ANCHORS");// [FORK]
+        bookmarkOrdered = intent.getBooleanExtra(packageName + ".ANCHOR_ORDERED", false);// [FORK]
+        bookmarkTitle = intent.getStringExtra(packageName + ".ANCHOR_TITLE");// [FORK]
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             inspector = intent.getParcelableExtra(packageName + ".INSPECTOR", InspectorV3.class);
         } else {
@@ -621,7 +640,9 @@ public class MainActivity extends BaseActivity
             if (inspector.getGalleries() != null)
                 showDialogDownloadAll();
         } else if (item.getItemId() == R.id.add_bookmark) {
-            Queries.BookmarkTable.addBookmark(inspector);
+            // [FORK] bookmarks the first gallery of the list
+            BookmarkMarker.Book book = BookmarkMarker.bookAt(adapter.getDataset(), 0);
+            if (book != null) BookmarkMarker.save(this, inspector, book);
         } else if (item.getItemId() == R.id.tag_manager) {
             TagStatus ts = TagV2.updateStatus(inspector.getTag());
             updateTagStatus(item, ts);

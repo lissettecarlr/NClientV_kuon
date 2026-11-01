@@ -116,9 +116,15 @@ public class ListAdapter extends RecyclerView.Adapter<GenericAdapter.ViewHolder>
         });
         holder.overlay.setOnClickListener(v -> holder.overlay.setVisibility(View.GONE));
         holder.layout.setOnLongClickListener(v -> {
-            holder.title.animate().alpha(holder.title.getAlpha() == 0f ? 1f : 0f).setDuration(100).start();
-            holder.flag.animate().alpha(holder.flag.getAlpha() == 0f ? 1f : 0f).setDuration(100).start();
-            holder.pages.animate().alpha(holder.pages.getAlpha() == 0f ? 1f : 0f).setDuration(100).start();
+            Runnable toggleTitles = () -> {
+                holder.title.animate().alpha(holder.title.getAlpha() == 0f ? 1f : 0f).setDuration(100).start();
+                holder.flag.animate().alpha(holder.flag.getAlpha() == 0f ? 1f : 0f).setDuration(100).start();
+                holder.pages.animate().alpha(holder.pages.getAlpha() == 0f ? 1f : 0f).setDuration(100).start();
+            };
+            // [FORK] long press offers "bookmark this gallery" in the main list
+            if (context instanceof MainActivity)
+                ((MainActivity) context).onGalleryLongPress(holder.getBindingAdapterPosition(), toggleTitles);
+            else toggleTitles.run();
             return true;
         });
         int statusColor = statuses.get(ent.getId(), 0);
@@ -214,5 +220,12 @@ public class ListAdapter extends RecyclerView.Adapter<GenericAdapter.ViewHolder>
 
     public void resetStatuses() {
         statuses.clear();
+    }
+
+    /**
+     * [FORK] the galleries shown, in order
+     */
+    public List<SimpleGallery> getDataset() {
+        return mDataset;
     }
 }

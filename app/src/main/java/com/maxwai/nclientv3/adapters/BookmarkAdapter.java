@@ -49,8 +49,14 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.ViewHo
         final int position = holder.getBindingAdapterPosition();
         Bookmark bookmark = bookmarks.get(position);
 
-        holder.queryText.setText(bookmark.toString());
-        holder.pageLabel.setText(bookmarkActivity.getString(R.string.bookmark_page_format, bookmark.page));
+        // [FORK] a bookmark points to a gallery: show its title instead of the page
+        if (bookmark.title.isEmpty()) {
+            holder.queryText.setText(bookmark.toString());
+            holder.pageLabel.setText(bookmarkActivity.getString(R.string.bookmark_page_format, bookmark.page));
+        } else {
+            holder.queryText.setText(bookmark + "\n" + bookmark.title);
+            holder.pageLabel.setText("");
+        }
 
         holder.rootLayout.setOnClickListener(v -> loadBookmark(bookmark));
         // [FORK] the small X was hard to hit: long press the bookmark to delete it
@@ -94,7 +100,11 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.ViewHo
         InspectorV3 inspector = bookmark.createInspector(bookmarkActivity, null);
         if (page != bookmark.page) inspector.setPage(page);// [FORK]
         i.putExtra(bookmarkActivity.getPackageName() + ".INSPECTOR", inspector);
-        if (bookmark.canSeek()) i.putExtra(bookmarkActivity.getPackageName() + ".ANCHOR", bookmark.anchor);// [FORK]
+        if (bookmark.anchor > 0) {// [FORK] scroll to the bookmarked gallery
+            i.putExtra(bookmarkActivity.getPackageName() + ".ANCHORS", bookmark.anchorIds());
+            i.putExtra(bookmarkActivity.getPackageName() + ".ANCHOR_ORDERED", bookmark.canSeek());
+            i.putExtra(bookmarkActivity.getPackageName() + ".ANCHOR_TITLE", bookmark.title);
+        }
         IntentUtility.startAnotherActivity(bookmarkActivity, i);
     }
 

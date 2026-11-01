@@ -7,6 +7,11 @@
     <string name="summary_hide_gay">列表和搜索中隐藏带 yaoi / males only 标签的漫画（自己搜索这些标签时不隐藏）</string>
     <string name="search_hint_with_tags">搜索标题，或输入标签名（支持中文），点选后可叠加多个</string>
     <string name="bookmark_seeking">正在定位上次看到的位置…</string>
+    <string name="bookmark_mark_gallery">设为书签</string>
+    <string name="bookmark_toggle_titles">显示 / 隐藏标题</string>
+    <string name="bookmark_saved">已设为书签：%1$s</string>
+    <string name="bookmark_located">书签：%1$s，它上面的都是新书</string>
+    <string name="bookmark_located_missing">书签的书已下架，已定位到它原来的位置，上面的都是新书</string>
     <string name="title_min_pages">最少页数</string>
     <string name="summary_min_pages">在列表和搜索结果中隐藏页数少于该值的漫画(0 = 关闭)</string>
 </resources>

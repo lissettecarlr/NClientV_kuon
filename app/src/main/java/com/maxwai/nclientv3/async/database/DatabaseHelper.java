@@ -25,7 +25,7 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     static final String DATABASE_NAME = "Entries.db";
-    private static final int DATABASE_VERSION = 14;// [FORK] 13 -> 14: bookmark anchor column
+    private static final int DATABASE_VERSION = 15;// [FORK] 13 -> 14: bookmark anchor column, 14 -> 15: bookmark followers and title
     private final Context context;
 
     public DatabaseHelper(Context context1) {
@@ -94,6 +94,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (oldVersion <= 11) updateFavoriteTable(db);
         if (oldVersion <= 12) addStatusTables(db);
         if (oldVersion <= 13) addBookmarkAnchor(db);// [FORK]
+        if (oldVersion <= 14) addBookmarkBookColumns(db);// [FORK]
 
     }
 
@@ -102,6 +103,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try {
             db.execSQL("ALTER TABLE Bookmark ADD COLUMN `anchor` INT NOT NULL DEFAULT 0");
         } catch (android.database.SQLException ignore) {
+        }
+    }
+
+    // [FORK] same as above: a column may already exist
+    private void addBookmarkBookColumns(SQLiteDatabase db) {
+        String[] columns = {
+            "`anchor2` INT NOT NULL DEFAULT 0",
+            "`anchor3` INT NOT NULL DEFAULT 0",
+            "`title` TEXT NOT NULL DEFAULT ''"
+        };
+        for (String column : columns) {
+            try {
+                db.execSQL("ALTER TABLE Bookmark ADD COLUMN " + column);
+            } catch (android.database.SQLException ignore) {
+            }
         }
     }
 
