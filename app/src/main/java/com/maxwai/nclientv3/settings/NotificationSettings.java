@@ -37,6 +37,7 @@ public class NotificationSettings {
 
     public static void notify(Context context, int notificationId, Notification notification) {
         if (maximumNotification == 0) return;
+        if (!areEnabled(context)) return;// [FORK]
         notificationArray.remove(Integer.valueOf(notificationId));
         notificationArray.add(notificationId);
         trimArray();
@@ -52,6 +53,24 @@ public class NotificationSettings {
             return;
         }
         notificationSettings.notificationManager.notify(notificationId, notification);
+    }
+
+    /**
+     * [FORK] The "Notifications" switch of the privacy settings, read every time so a change is
+     * effective at once
+     */
+    public static boolean areEnabled(Context context) {
+        return context.getSharedPreferences("Settings", 0)
+            .getBoolean(context.getString(R.string.preference_key_notifications_enabled), true);
+    }
+
+    /**
+     * [FORK] Remove the notifications that are currently shown
+     */
+    public static void cancelAll() {
+        if (notificationSettings == null) return;
+        notificationSettings.notificationManager.cancelAll();
+        notificationArray.clear();
     }
 
     public static void cancel(int notificationId) {

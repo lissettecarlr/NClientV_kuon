@@ -7,6 +7,10 @@
     <string name="title_show_tag_translation">Show tag translation</string>
     <string name="summary_show_tag_translation">Show a Chinese translation next to the tags (display only)</string>
     <string name="preference_key_hide_gay" translatable="false">hide_gay</string>
+    <string name="preference_key_notifications_enabled" translatable="false">notifications_enabled</string>
+    <string name="privacy_settings">Privacy</string>
+    <string name="title_notifications_enabled">Notifications</string>
+    <string name="summary_notifications_enabled">When off, the app does not send any notification</string>
     <string name="title_hide_gay">Hide gay content</string>
     <string name="summary_hide_gay">Hide galleries tagged yaoi or males only in lists and searches (not when you search these tags yourself)</string>
     <string name="search_hint_with_tags">Search title, or type a tag name (Chinese works too)</string>
