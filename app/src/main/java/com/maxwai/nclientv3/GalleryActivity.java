@@ -34,6 +34,7 @@ import com.maxwai.nclientv3.api.components.GenericGallery;
 import com.maxwai.nclientv3.async.database.Queries;
 import com.maxwai.nclientv3.components.activities.BaseActivity;
 import com.maxwai.nclientv3.components.status.CompletedSync;
+import com.maxwai.nclientv3.components.status.FixedStatus;
 import com.maxwai.nclientv3.components.status.Status;
 import com.maxwai.nclientv3.components.status.StatusManager;
 import com.maxwai.nclientv3.components.views.RangeSelector;
@@ -321,6 +322,7 @@ public class GalleryActivity extends BaseActivity {
             public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
                 CheckedTextView textView = (CheckedTextView) super.getView(position, convertView, parent);
                 textView.setTextColor(StatusManager.getByName(statuses.get(position)).opaqueColor());
+                textView.setText(FixedStatus.displayName(GalleryActivity.this, statuses.get(position)));// [FORK]
                 return textView;
             }
         };

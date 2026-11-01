@@ -7,6 +7,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.maxwai.nclientv3.StatusViewerActivity;
 import com.maxwai.nclientv3.async.database.Queries;
+import com.maxwai.nclientv3.components.status.FixedStatus;
 import com.maxwai.nclientv3.components.status.StatusManager;
 
 import java.util.List;
@@ -22,13 +23,16 @@ public class SectionsPagerAdapter extends FragmentStateAdapter {
     public SectionsPagerAdapter(StatusViewerActivity context) {
         super(context.getSupportFragmentManager(), context.getLifecycle());
         statuses = StatusManager.getNames();
+        this.context = context;
     }
+
+    private final StatusViewerActivity context;// [FORK]
 
     @Nullable
     public CharSequence getPageTitle(int position) {
         String status = statuses.get(position);
         int count = Queries.StatusMangaTable.getCountPerStatus(status);
-        return String.format(Locale.US, "%s - %d", status, count);
+        return String.format(Locale.US, "%s - %d", FixedStatus.displayName(context, status), count);// [FORK]
     }
 
     @NonNull

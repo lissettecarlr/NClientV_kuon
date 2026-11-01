@@ -128,8 +128,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private void insertDefaultStatus() {
-        StatusManager.add(context.getString(R.string.default_status_1), Color.BLUE);
-        StatusManager.add(context.getString(R.string.default_status_2), Color.GREEN);
+        // [FORK] default_status_1 and _2 (Reading, Completed) are the fixed statuses now, see FixedStatus
         StatusManager.add(context.getString(R.string.default_status_3), Color.YELLOW);
         StatusManager.add(context.getString(R.string.default_status_4), Color.RED);
         StatusManager.add(context.getString(R.string.default_status_5), Color.GRAY);

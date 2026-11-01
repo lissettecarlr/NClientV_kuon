@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.maxwai.nclientv3.R;
+import com.maxwai.nclientv3.components.status.FixedStatus;
 import com.maxwai.nclientv3.components.status.Status;
 import com.maxwai.nclientv3.components.status.StatusManager;
 import com.maxwai.nclientv3.settings.Global;
@@ -58,10 +59,19 @@ public class StatusManagerAdapter extends RecyclerView.Adapter<StatusManagerAdap
             return;
         }
         Status status = statusList.get(holder.getBindingAdapterPosition());
-        holder.name.setText(status.name);
+        holder.name.setText(FixedStatus.displayName(activity, status.name));// [FORK]
         holder.color.setVisibility(View.VISIBLE);
         holder.color.setBackgroundColor(status.opaqueColor());
 
+        // [FORK] the fixed statuses can't be edited nor deleted
+        if (FixedStatus.isFixed(status.name)) {
+            holder.cancel.setImageDrawable(null);
+            holder.cancel.setOnClickListener(null);
+            holder.cancel.setClickable(false);
+            holder.master.setOnClickListener(v -> Toast.makeText(activity, R.string.status_fixed, Toast.LENGTH_SHORT).show());
+            return;
+        }
+        holder.cancel.setClickable(true);
         holder.cancel.setImageResource(R.drawable.ic_close);
         holder.master.setOnClickListener(v -> updateStatus(status));
         holder.cancel.setOnClickListener(v -> {

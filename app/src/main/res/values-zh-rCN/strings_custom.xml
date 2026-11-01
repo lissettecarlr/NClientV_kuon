@@ -15,6 +15,9 @@
     <string name="bookmark_located_missing">书签的书已下架，已定位到它原来的位置，上面的都是新书</string>
     <string name="title_min_pages">最少页数</string>
     <string name="summary_min_pages">在列表和搜索结果中隐藏页数少于该值的漫画(0 = 关闭)</string>
+    <string name="status_downloaded">已下载</string>
+    <string name="status_bookmark">书签</string>
+    <string name="status_fixed">这是应用自动设置的状态，不能修改或删除</string>
     <string name="export_in_progress">正在导出，需要几秒钟，请先别离开应用，等出现完成提示再退出</string>
     <string name="import_backup_damaged">这个备份文件不完整或已损坏（多半是导出时被中断了），没有导入任何数据。请重新导出，并等导出完成</string>
 </resources>

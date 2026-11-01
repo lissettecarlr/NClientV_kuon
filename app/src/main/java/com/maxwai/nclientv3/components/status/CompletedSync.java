@@ -28,11 +28,11 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * Custom (fork only) feature: keep the "Completed" status and the downloads in sync.
+ * Custom (fork only) feature: keep the fixed "Downloaded" status (was "Completed") and the downloads in sync.
  * <ul>
- *     <li>a gallery fully downloaded gets the "Completed" status</li>
- *     <li>setting the "Completed" status on a gallery starts its download (if not already downloaded)</li>
- *     <li>"download all galleries in this page" marks all of them as "Completed"</li>
+ *     <li>a gallery fully downloaded gets the "Downloaded" status</li>
+ *     <li>setting the "Downloaded" status on a gallery starts its download (if not already downloaded)</li>
+ *     <li>"download all galleries in this page" marks all of them as "Downloaded"</li>
  * </ul>
  * Kept in its own file so that merging upstream only has to deal with a few hook lines.
  */
@@ -41,30 +41,19 @@ public final class CompletedSync {
     }
 
     /**
-     * The status names are stored in the database in the language that was active when it was
-     * created, so accept the usual ones.
-     */
-    private static String[] candidateNames(Context context) {
-        return new String[]{context.getString(R.string.default_status_2), "Completed", "已完成"};
-    }
-
-    /**
-     * @return the "Completed" status, created if the user deleted it
+     * @return the fixed "Downloaded" status (see {@link FixedStatus}), created if missing
      */
     @NonNull
     public static Status getCompletedStatus(@NonNull Context context) {
-        for (String name : candidateNames(context)) {
-            Status status = StatusManager.getByName(name);
-            if (status != null) return status;
-        }
-        return StatusManager.add(context.getString(R.string.default_status_2), Color.GREEN);
+        Status status = StatusManager.getByName(FixedStatus.DOWNLOADED);
+        if (status != null) return status;
+        StatusManager.reload();
+        status = StatusManager.getByName(FixedStatus.DOWNLOADED);
+        return status != null ? status : StatusManager.add(FixedStatus.DOWNLOADED, Color.GREEN);
     }
 
     public static boolean isCompleted(@NonNull Context context, @Nullable String statusName) {
-        if (statusName == null) return false;
-        for (String name : candidateNames(context))
-            if (name.equals(statusName)) return true;
-        return false;
+        return FixedStatus.DOWNLOADED.equals(statusName);
     }
 
     /**

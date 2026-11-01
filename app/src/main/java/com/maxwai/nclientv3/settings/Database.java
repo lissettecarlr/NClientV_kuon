@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import androidx.annotation.Nullable;
 
 import com.maxwai.nclientv3.async.database.Queries;
+import com.maxwai.nclientv3.components.status.FixedStatus;
+import com.maxwai.nclientv3.components.status.StatusManager;
 import com.maxwai.nclientv3.utility.LogUtility;
 
 public class Database {
@@ -19,7 +21,8 @@ public class Database {
         Database.database = database;
         LogUtility.d("SETTED database" + database);
         setDBForTables(database);
-        Queries.StatusTable.initStatuses();
+        FixedStatus.migrate(database);// [FORK]
+        StatusManager.reload();// [FORK] (was: Queries.StatusTable.initStatuses();)
     }
 
     private static void setDBForTables(SQLiteDatabase database) {
