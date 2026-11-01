@@ -37,11 +37,12 @@ powershell -File .cursor/skills/nclientv-kuon-dev/scripts/ui.ps1        # list t
 - Be careful with the user's real data on the phone (bookmarks, favorites, status): do not delete them while testing, cancel dialogs.
 - `adb` commands may be blocked by auto-review; retry the same call with `request_smart_mode_approval` (the user authorized device testing).
 
-### Testing foldable / odd screen sizes on the tablet
+### Testing foldable / odd screen sizes (Xiaomi 18 Fold)
 
-`fold.ps1 <profile>` emulates a screen with `wm size` + `wm density` (same dp as the real phone, px scaled to fit the 1600x2560 panel). Switching profiles while the app runs = fold/unfold event (activity must not restart; check `Main started with mode` in logcat).
-Profiles: `phone`, `mi-outer`, `mi-inner-port`, `mi-inner-land` (Xiaomi 18 Fold only; iPhone Duo is iOS, not supported). **Always finish with `fold.ps1 reset`** and check `wm size` shows only `Physical`.
-Screenshots need FLAG_SECURE off: pref `hide_multitasking` = false in `Settings.xml` (default is true, so the original file normally has no such key). Save the original first (`cmd /c "adb exec-out run-as ... cat shared_prefs/Settings.xml > %TEMP%\Settings.orig.xml"`) and restore it when done. Then: `cmd /c "adb exec-out screencap -p > %TEMP%\s.png"` and read the PNG.
+Real screen data of the Xiaomi 18 Fold (measured on a real unit that is no longer available): `devices/xiaomi-18-fold.md` (outer 425x623 dp `nrml`, inner 608x860 dp `lrg`, density 440). Check the file before asking for the device again.
+`fold.ps1 <profile>` emulates those screens with `wm size` + `wm density` (same dp; px scaled to fit the tablet 1600x2560). Switching profiles while the app runs = fold/unfold event (activity must not restart; check `Main started with mode` in logcat).
+Profiles: `phone`, `mi-outer`, `mi-inner-port`, `mi-inner-land` (tablet), `real-outer` (only on the real Xiaomi). iPhone Duo is iOS: not supported. **Always finish with `fold.ps1 reset`** and check `wm size` shows only `Physical`.
+Screenshots need FLAG_SECURE off: pref `hide_multitasking` = false in `Settings.xml` (default is true). Save the original first (`cmd /c "adb exec-out run-as ... cat shared_prefs/Settings.xml > %TEMP%\Settings.orig.xml"`) and restore it when done. Then `scripts/shot.ps1 -Out %TEMP%\a.png` (picks the display that is ON, scales down; plain `screencap` is corrupt on two-display phones and 2.5 MB PNGs can not be read) and read the PNG.
 Window-size dependent code: `WindowColumns.adjust` (columns follow the window width), `Global.initScreenSize` (refreshed in `GeneralActivity.onConfigurationChanged`). GalleryActivity has no `configChanges` on purpose (restarts on fold).
 
 ### Editing the app database or prefs on the device
